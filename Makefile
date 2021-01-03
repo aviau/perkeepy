@@ -1,4 +1,5 @@
-.all: test
+.PHONY: all
+all: test lint
 
 venv: requirements.txt requirements.test.txt
 	python3.8 -m venv venv
