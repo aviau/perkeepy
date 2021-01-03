@@ -2,7 +2,7 @@
 all: test lint
 
 venv: requirements.txt requirements.test.txt
-	python3.8 -m venv venv
+	python -m venv venv
 	venv/bin/pip install -r requirements.txt -r requirements.test.txt
 	venv/bin/python setup.py develop
 
