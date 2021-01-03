@@ -17,12 +17,11 @@ lint: venv
 		--cache-dir=.mypy_cache \
 	    perkeepy
 
-.PHONY: upload
-upload: venv
+.PHONY: build
+build: venv
 	venv/bin/pip install twine==3.3.0 build==0.1.0
 	rm -rf dist
 	venv/bin/python -m build --sdist --wheel --outdir dist/
-	venv/bin/python -m twine upload dist/*
 
 .PHONY: clean
 clean:
