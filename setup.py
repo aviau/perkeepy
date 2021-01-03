@@ -1,7 +1,7 @@
 from setuptools import find_packages
 from setuptools import setup
 
-with open('README.md', 'r', encoding='utf-8') as f:
+with open("README.md", "r", encoding="utf-8") as f:
     long_description: str = f.read()
 
 setup(
@@ -11,7 +11,7 @@ setup(
     author_email="alexandre@alexandreviau.net",
     description="Python utilities for Perkeep",
     long_description=long_description,
-    long_description_content_type='text/markdown',
+    long_description_content_type="text/markdown",
     url="https://github.com/aviau/perkeepy",
     classifiers=[
         "Intended Audience :: Developers",

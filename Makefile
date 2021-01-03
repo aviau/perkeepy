@@ -10,8 +10,18 @@ venv: requirements.txt requirements.test.txt
 test: venv
 	venv/bin/pytest perkeepy
 
+.PHONY: fmt
+fmt: venv
+	venv/bin/black \
+	    --config=pyproject.toml \
+	    perkeepy setup.py
+
 .PHONY: lint
 lint: venv
+	venv/bin/black \
+	    --config=pyproject.toml \
+	    --check \
+	    perkeepy setup.py
 	venv/bin/mypy \
 	    --config-file=mypy.ini \
 		--cache-dir=.mypy_cache \
