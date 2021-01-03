@@ -19,9 +19,9 @@ lint: venv
 
 .PHONY: upload
 upload: venv
-	venv/bin/pip install twine==3.3.0 wheel==0.36.2
+	venv/bin/pip install twine==3.3.0 build==0.1.0
 	rm -rf dist
-	venv/bin/python setup.py sdist bdist_wheel
+	venv/bin/python -m build --sdist --wheel --outdir dist/
 	venv/bin/python -m twine upload dist/*
 
 .PHONY: clean
