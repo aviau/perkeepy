@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name="perkeepy",
-    version="0.1.2",
+    version="0.1.3",
     author="Alexandre Viau",
     author_email="alexandre@alexandreviau.net",
     description="Python utilities for Perkeep",
