@@ -9,6 +9,13 @@ venv: requirements.txt requirements.test.txt
 test: venv
 	venv/bin/pytest perkeepy
 
+.PHONY: lint
+lint: venv
+	venv/bin/mypy \
+	    --config-file=mypy.ini \
+		--cache-dir=.mypy_cache \
+	    perkeepy
+
 .PHONY: upload
 upload: venv
 	venv/bin/pip install twine==3.3.0 wheel==0.36.2
@@ -21,3 +28,4 @@ clean:
 	rm -rf venv
 	rm -rf build
 	rm -rf dist
+	rm -rf .mypy_cache
