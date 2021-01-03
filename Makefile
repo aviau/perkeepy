@@ -24,7 +24,7 @@ lint: venv
 	    perkeepy setup.py
 	venv/bin/mypy \
 	    --config-file=mypy.ini \
-		--cache-dir=.mypy_cache \
+	    --cache-dir=.mypy_cache \
 	    perkeepy setup.py
 
 .PHONY: build
