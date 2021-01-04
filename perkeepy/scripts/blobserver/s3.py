@@ -32,7 +32,7 @@ def get(blobserver: S3, *, ref: str) -> None:
     ref_: Ref = Ref.from_str(ref)
     blob = blobserver.fetch(ref_)
 
-    if not blob.is_utf8():
+    if blob.is_utf8():
         click.echo(blob.get_bytes().decode("utf-8"))
     else:
         click.echo(base64.b64encode(blob.get_bytes()))
