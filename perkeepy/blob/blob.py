@@ -19,3 +19,10 @@ class Blob:
         if self._bytes is None:
             self._bytes = self.readall()
         return self._bytes
+
+    def is_utf8(self) -> bool:
+        try:
+            self.get_bytes().decode("utf-8")
+        except UnicodeDecodeError:
+            return False
+        return True
