@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from perkeepy.blob import Ref
+from .ref import Ref
 
 
 class Fetcher(Protocol):
