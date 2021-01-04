@@ -1,6 +1,7 @@
 from typing import Callable
 from typing import Optional
 
+from .ref import Hash
 from .ref import Ref
 
 ReadAll = Callable[[], bytes]
@@ -26,3 +27,8 @@ class Blob:
         except UnicodeDecodeError:
             return False
         return True
+
+    def is_valid(self) -> bool:
+        hash_: Hash = self._ref.get_new_hash()
+        hash_.update(self.get_bytes())
+        return hash_.hexdigest() == self._ref.get_hexdigest()

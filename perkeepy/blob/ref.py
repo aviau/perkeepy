@@ -11,6 +11,9 @@ class Hash(Protocol):
     def digest(self) -> bytes:
         ...
 
+    def hexdigest(self) -> str:
+        ...
+
 
 class Ref(abc.ABC):
     def __init__(self, bytes_: bytes) -> None:
@@ -18,6 +21,9 @@ class Ref(abc.ABC):
 
     def get_bytes(self) -> bytes:
         return self.bytes
+
+    def get_hexdigest(self) -> str:
+        return self.get_bytes().hex()
 
     @abc.abstractclassmethod
     def get_digest_name(self) -> str:
@@ -37,7 +43,7 @@ class Ref(abc.ABC):
 
     def to_str(self) -> str:
         digest_name: str = self.get_digest_name()
-        hexdigest: str = self.get_bytes().hex()
+        hexdigest: str = self.get_hexdigest()
         return f"{digest_name}-{hexdigest}"
 
     @staticmethod
