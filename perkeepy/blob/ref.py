@@ -37,6 +37,7 @@ class BaseRef:
             return False
         return refs_are_equal(self, other)
 
+
 class SHA224Ref(BaseRef):
     def __init__(self, bytes_: bytes) -> None:
         self.bytes = bytes_
@@ -49,6 +50,7 @@ class SHA224Ref(BaseRef):
 
     def get_new_hash(self) -> Hash:
         return hashlib.sha224()
+
 
 def refs_are_equal(ref1: Ref, ref2: Ref) -> bool:
     return (
