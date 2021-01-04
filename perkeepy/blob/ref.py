@@ -19,9 +19,8 @@ class Ref(abc.ABC):
     def __init__(self, bytes_: bytes) -> None:
         self.bytes = bytes_
 
-    @abc.abstractmethod
     def get_bytes(self) -> bytes:
-        ...
+        return self.bytes
 
     @abc.abstractclassmethod
     def get_digest_name(self) -> str:
@@ -49,9 +48,6 @@ class Ref(abc.ABC):
 
 
 class SHA224Ref(Ref):
-    def get_bytes(self) -> bytes:
-        return self.bytes
-
     def get_digest_name(self) -> str:
         return "sha224"
 
