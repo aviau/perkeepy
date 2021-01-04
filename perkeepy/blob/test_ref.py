@@ -12,6 +12,10 @@ def test_from_str_sha224() -> None:
         ref_sha224.get_bytes().hex()
         == "d14a028c2a3a2bc9476102bb288234c415a2b01f828ea62ac5b3e42f"
     )
+    assert (
+        ref_sha224.to_str()
+        == "sha224-d14a028c2a3a2bc9476102bb288234c415a2b01f828ea62ac5b3e42f"
+    )
 
 
 def test_ref_equal() -> None:

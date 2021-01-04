@@ -35,6 +35,11 @@ class Ref(abc.ABC):
             and self.get_bytes() == other.get_bytes()
         )
 
+    def to_str(self) -> str:
+        digest_name: str = self.get_digest_name()
+        hexdigest: str = self.get_bytes().hex()
+        return f"{digest_name}-{hexdigest}"
+
     @staticmethod
     def from_str(ref: str) -> "Ref":
         hash_type, hexdigest = ref.split("-")
