@@ -35,12 +35,7 @@ class BaseRef:
     def equals(self, other: object) -> bool:
         if not isinstance(self, Ref) or not isinstance(other, Ref):
             return False
-
-        return (
-            self.get_digest_name() == other.get_digest_name()
-            and self.get_bytes() == other.get_bytes()
-        )
-
+        return refs_are_equal(self, other)
 
 class SHA224Ref(BaseRef):
     def __init__(self, bytes_: bytes) -> None:
@@ -54,6 +49,12 @@ class SHA224Ref(BaseRef):
 
     def get_new_hash(self) -> Hash:
         return hashlib.sha224()
+
+def refs_are_equal(ref1: Ref, ref2: Ref) -> bool:
+    return (
+        ref1.get_digest_name() == ref2.get_digest_name()
+        and ref1.get_bytes() == ref2.get_bytes()
+    )
 
 
 def ref_from_str(ref: str) -> Ref:
