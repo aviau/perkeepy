@@ -11,5 +11,5 @@ class BlobEnumerator(Protocol):
         ...
 
 
-class Storage(Protocol, Fetcher, BlobEnumerator):
+class Storage(Fetcher, BlobEnumerator, Protocol):
     ...
