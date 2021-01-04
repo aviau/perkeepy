@@ -1,10 +1,7 @@
+import abc
+import hashlib
 from typing import Protocol
 from typing import runtime_checkable
-
-import abc
-
-
-import hashlib
 
 
 class Hash(Protocol):

@@ -19,6 +19,9 @@ format: venv
 	venv/bin/black \
 	    --config=pyproject.toml \
 	    perkeepy setup.py
+	venv/bin/isort \
+	    --settings-path=pyproject.toml \
+	    perkeepy
 
 .PHONY: mypy
 mypy: venv
@@ -33,6 +36,11 @@ lint: venv mypy
 	    --config=pyproject.toml \
 	    --check \
 	    perkeepy setup.py
+	venv/bin/isort \
+	    --settings-path=pyproject.toml \
+	    --check \
+	    --diff \
+	    perkeepy
 
 .PHONY: build
 build: venv

@@ -1,6 +1,6 @@
-from typing import Protocol
 from typing import Iterator
 from typing import Optional
+from typing import Protocol
 
 from perkeepy.blob import Fetcher
 from perkeepy.blob import Ref
