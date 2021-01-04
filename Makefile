@@ -11,8 +11,12 @@ venv: requirements.txt requirements.test.txt
 test: venv
 	venv/bin/pytest perkeepy
 
+
 .PHONY: fmt
-fmt: venv
+fmt: format
+
+.PHONY: format
+format: venv
 	venv/bin/black \
 	    --config=pyproject.toml \
 	    perkeepy setup.py
