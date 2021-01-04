@@ -3,6 +3,7 @@ from typing import Protocol
 import boto3
 import click
 
+from perkeepy.blob import Ref
 from perkeepy.blobserver.s3 import S3
 from perkeepy.blobserver.s3 import S3Client
 
@@ -21,6 +22,15 @@ def cli(ctx: click.Context, *, bucket: str) -> None:
 def list_(blobserver: S3) -> None:
     for ref in blobserver.enumerate_blobs():
         click.echo(ref.to_str())
+
+
+@cli.command("get")
+@click.option("--ref", type=str, required=True)
+@click.pass_obj
+def get(blobserver: S3, *, ref: str) -> None:
+    ref_: Ref = Ref.from_str(ref)
+    blob = blobserver.fetch(ref_)
+    click.echo(blob.get_bytes().decode("utf-8"))
 
 
 if __name__ == "__main__":

@@ -4,6 +4,9 @@ from typing import Optional
 from typing import Protocol
 from typing import TypedDict
 
+from botocore.response import StreamingBody
+
+from perkeepy.blob import Blob
 from perkeepy.blob import Ref
 
 
@@ -15,6 +18,10 @@ class S3ListObjectsV2Response(TypedDict):
     Contents: List[S3ObjectMetadata]
 
 
+class S3GetObjectResponse(TypedDict):
+    Body: StreamingBody
+
+
 class S3Client(Protocol):
     def list_objects_v2(
         self,
@@ -23,6 +30,14 @@ class S3Client(Protocol):
         Prefix: Optional[str] = None,
         StartAfter: str,
     ) -> S3ListObjectsV2Response:
+        ...
+
+    def get_object(
+        self,
+        *,
+        Bucket: str,
+        Key: str,
+    ) -> S3GetObjectResponse:
         ...
 
 
@@ -58,8 +73,16 @@ class S3:
 
             after = ref
 
-    def fetch(self, ref: Ref) -> bytes:
-        raise NotImplementedError()
+    def fetch(self, ref: Ref) -> Blob:
+        resp: S3GetObjectResponse = self.client.get_object(
+            Bucket=self.bucket,
+            Key=self.dirprefix + ref.to_str(),
+        )
+        blob: Blob = Blob(
+            ref=ref,
+            readall=lambda: resp["Body"].read(),
+        )
+        return blob
 
     @staticmethod
     def _assert_implements_storage(s3: "S3") -> None:
