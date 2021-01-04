@@ -12,4 +12,9 @@ class BlobEnumerator(Protocol):
 
 
 class Storage(Fetcher, BlobEnumerator, Protocol):
+    """
+    Storage is the interface that must be implemented by a blobserver
+    storage type. (e.g. localdisk, s3, encrypt, shard, replica, remote)
+    """
+
     ...
