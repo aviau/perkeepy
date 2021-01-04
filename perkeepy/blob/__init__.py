@@ -1,2 +1,2 @@
 from .ref import Ref
-from .ref import BaseRef
+from .fetcher import Fetcher
