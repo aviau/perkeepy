@@ -82,4 +82,7 @@ class Schema:
                 f"The blob's schema is not valid: {str(validation_errors)}"
             )
 
-        raise NotImplementedError()
+        return cls(
+            blob=blob,
+            ss=blob_json,
+        )

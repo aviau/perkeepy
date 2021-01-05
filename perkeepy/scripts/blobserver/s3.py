@@ -6,6 +6,8 @@ import boto3
 import click
 
 from perkeepy.blob import Ref
+from perkeepy.blob import Blob
+from perkeepy.schema import Schema
 from perkeepy.blobserver.s3 import S3
 from perkeepy.blobserver.s3 import S3Client
 
@@ -20,9 +22,16 @@ def cli(ctx: click.Context, *, bucket: str) -> None:
 
 
 @cli.command("list")
+@click.option("--only-schemas", is_flag=True)
 @click.pass_obj
-def list_(blobserver: S3) -> None:
+def list_(blobserver: S3, *, only_schemas: bool) -> None:
     for ref in blobserver.enumerate_blobs():
+        if only_schemas:
+            blob: Blob = blobserver.fetch(ref)
+            try:
+                Schema.from_blob(blob)
+            except Exception:
+                continue
         click.echo(ref.to_str())
 
 
