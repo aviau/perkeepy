@@ -3,7 +3,7 @@ from perkeepy.blob.ref import SHA224Ref
 
 
 def test_from_str_sha224() -> None:
-    ref_sha224: Ref = Ref.from_str(
+    ref_sha224: Ref = Ref.from_ref_str(
         "sha224-d14a028c2a3a2bc9476102bb288234c415a2b01f828ea62ac5b3e42f"
     )
     assert isinstance(ref_sha224, SHA224Ref)
@@ -19,8 +19,8 @@ def test_from_str_sha224() -> None:
 
 
 def test_ref_equal() -> None:
-    assert Ref.from_str(
+    assert Ref.from_ref_str(
         "sha224-d14a028c2a3a2bc9476102bb288234c415a2b01f828ea62ac5b3e42f"
-    ) == Ref.from_str(
+    ) == Ref.from_ref_str(
         "sha224-d14a028c2a3a2bc9476102bb288234c415a2b01f828ea62ac5b3e42f"
     )

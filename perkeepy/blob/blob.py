@@ -32,3 +32,12 @@ class Blob:
         hash_: Hash = self._ref.get_new_hash()
         hash_.update(self.get_bytes())
         return hash_.hexdigest() == self._ref.get_hexdigest()
+
+    @classmethod
+    def from_contents_bytes(cls, data: bytes) -> "Blob":
+        ref: Ref = Ref.from_contents_bytes(data)
+        return cls(ref=ref, readall=lambda: data)
+
+    @classmethod
+    def from_contents_str(cls, data: str) -> "Blob":
+        return cls.from_contents_bytes(data.encode("utf-8"))

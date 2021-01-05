@@ -68,7 +68,7 @@ class S3:
 
             for s3_object in resp["Contents"]:
                 ref_str: str = s3_object["Key"].split("/")[-1]
-                ref = Ref.from_str(ref_str)
+                ref = Ref.from_ref_str(ref_str)
                 yield ref
 
             after = ref

@@ -30,7 +30,7 @@ def list_(blobserver: S3) -> None:
 @click.option("--ref", type=str, required=True)
 @click.pass_obj
 def get(blobserver: S3, *, ref: str) -> None:
-    ref_: Ref = Ref.from_str(ref)
+    ref_: Ref = Ref.from_ref_str(ref)
     blob = blobserver.fetch(ref_)
 
     if blob.is_utf8():
