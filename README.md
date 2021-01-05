@@ -18,7 +18,9 @@ s3_client: S3Client = boto3.client("s3")
 blobserver = S3(s3_client=s3_client, bucket="bucket")
 
 # Fetch Specific blobs
-blob = blobserver.fetch(Ref.from_ref_str("sha224-ff70c8d9921031e339f792c855dd62e7fc53565828387b1f76e87c2b"))
+blob = blobserver.fetch(
+    Ref.from_ref_str("sha224-ff70c8d9921031e339f792c855dd62e7fc53565828387b1f76e87c2b")
+)
 
 # Enumerate all blobs
 blobs = blobserver.enumerate_blobs()
