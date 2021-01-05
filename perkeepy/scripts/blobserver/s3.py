@@ -5,11 +5,11 @@ import base64
 import boto3
 import click
 
-from perkeepy.blob import Ref
 from perkeepy.blob import Blob
-from perkeepy.schema import Schema
+from perkeepy.blob import Ref
 from perkeepy.blobserver.s3 import S3
 from perkeepy.blobserver.s3 import S3Client
+from perkeepy.schema import Schema
 
 
 @click.group()
