@@ -1,7 +1,6 @@
 from typing import Protocol
 from typing import runtime_checkable
 
-import abc
 import hashlib
 
 
@@ -24,19 +23,21 @@ class DigestAlgorithm(Protocol):
         ...
 
 
-class Ref(abc.ABC):
-    def __init__(self, bytes_: bytes) -> None:
-        self.bytes = bytes_
+class Ref:
+    def __init__(
+        self, digest_algorithm: DigestAlgorithm, bytes_: bytes
+    ) -> None:
+        self._digest_algorithm = digest_algorithm
+        self._bytes = bytes_
 
-    @abc.abstractclassmethod
     def get_digest_algorithm(self) -> DigestAlgorithm:
-        ...
+        return self._digest_algorithm
 
     def get_new_hash(self) -> Hash:
         return self.get_digest_algorithm().get_new_hash()
 
     def get_bytes(self) -> bytes:
-        return self.bytes
+        return self._bytes
 
     def get_hexdigest(self) -> str:
         return self.get_bytes().hex()
@@ -61,13 +62,15 @@ class Ref(abc.ABC):
     def get_currently_recommended_digest_algorithm() -> DigestAlgorithm:
         return SHA224()
 
-    @staticmethod
-    def from_ref_str(ref: str) -> "Ref":
+    @classmethod
+    def from_ref_str(cls, ref: str) -> "Ref":
         """Creates a ref from a 'digalg-blobref' string"""
 
         hash_type, hexdigest = ref.split("-")
         if hash_type == "sha224":
-            return SHA224Ref(bytes_=bytearray.fromhex(hexdigest))
+            return cls(
+                digest_algorithm=SHA224(), bytes_=bytearray.fromhex(hexdigest)
+            )
         else:
             raise Exception(f"Unsupported hash type {hash_type}")
 
