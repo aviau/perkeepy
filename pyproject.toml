@@ -15,12 +15,13 @@ include_trailing_comma = true
 force_grid_wrap = 0
 use_parentheses = true
 line_length = 80
-force_to_top = '''
+known_typing_library = '''
     typing,
     typing_extensions
 '''
 sections = '''
     FUTURE,
+    TYPING_LIBRARY,
     STDLIB,
     THIRDPARTY,
     FIRSTPARTY,
