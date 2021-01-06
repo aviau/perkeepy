@@ -1,7 +1,11 @@
 from typing import Protocol
+from typing import Type
 from typing import runtime_checkable
 
+import enum
 import hashlib
+
+from perkeepy.typing import assert_never
 
 
 class Hash(Protocol):
@@ -65,14 +69,13 @@ class Ref:
     @classmethod
     def from_ref_str(cls, ref: str) -> "Ref":
         """Creates a ref from a 'digalg-blobref' string"""
-
-        hash_type, hexdigest = ref.split("-")
-        if hash_type == "sha224":
-            return cls(
-                digest_algorithm=SHA224(), bytes_=bytearray.fromhex(hexdigest)
-            )
-        else:
-            raise Exception(f"Unsupported hash type {hash_type}")
+        digalg_name, hexdigest = ref.split("-")
+        return cls(
+            digest_algorithm=DigestAlgorithmName.get_digest_algorithm_from_name(
+                digalg_name,
+            ),
+            bytes_=bytearray.fromhex(hexdigest),
+        )
 
     @classmethod
     def from_contents_str(cls, data: str) -> "Ref":
@@ -89,10 +92,22 @@ class Ref:
         )
 
 
+class DigestAlgorithmName(enum.Enum):
+    SHA224 = "sha224"
+
+    @staticmethod
+    def get_digest_algorithm_from_name(name: str) -> DigestAlgorithm:
+        digalg: DigestAlgorithmName = DigestAlgorithmName(name)
+        if digalg is DigestAlgorithmName.SHA224:
+            return SHA224()
+        else:
+            assert_never(digalg)
+
+
 class SHA224:
     @staticmethod
     def get_digest_name() -> str:
-        return "sha224"
+        return DigestAlgorithmName.SHA224.value
 
     @staticmethod
     def get_new_hash() -> Hash:
