@@ -15,7 +15,7 @@ from perkeepy.blob import Blob
 
 class CamliType(enum.Enum):
     BYTES = "bytes"
-    PERMANODOE = "permanode"
+    PERMANODE = "permanode"
 
 
 class JsonSchemaValidator:
@@ -71,9 +71,17 @@ class JsonSchemaValidator:
             "permanode": {
                 "type": "object",
                 "properties": {
-                    "camliVersion": {"const": "1"},
+                    "camliVersion": {"const": 1},
                     "camliType": {"const": "permanode"},
+                    "random": {"type": "string"},
+                    "camliSigner": {"type": "string"},
                 },
+                "required": [
+                    "camliVersion",
+                    "camliType",
+                    "random",
+                    "camliSigner",
+                ],
             },
         },
     }

@@ -26,7 +26,7 @@ def test_json_schema() -> None:
     )
 
 
-def test_schema_from_blob() -> None:
+def test_schema_from_blob_bytes() -> None:
     blob: Blob = Blob.from_contents_str(
         """
 {"camliVersion": 1,
@@ -42,6 +42,20 @@ def test_schema_from_blob() -> None:
     )
     schema: Schema = Schema.from_blob(blob)
     assert schema.get_type() == CamliType.BYTES
+
+
+def test_schema_from_blob_permanode() -> None:
+    blob: Blob = Blob.from_contents_str(
+        """
+{"camliVersion": 1,
+ "camliType": "permanode",
+ "random": "615e05c68c8411df81a2001b639d041f",
+ "camliSigner": "hashalg-xxxxxxxxxxx"
+}
+"""
+    )
+    schema: Schema = Schema.from_blob(blob)
+    assert schema.get_type() == CamliType.PERMANODE
 
 
 def test_schema_from_blob_raises() -> None:
