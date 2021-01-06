@@ -5,6 +5,7 @@ from typing import Optional
 from typing import Tuple
 from typing import TypedDict
 
+import enum
 import json
 
 import jsonschema
@@ -12,18 +13,69 @@ import jsonschema
 from perkeepy.blob import Blob
 
 
+class CamliType(enum.Enum):
+    BYTES = "bytes"
+    PERMANODOE = "permanode"
+
+
 class JsonSchemaValidator:
 
     blob_json_schema: Final[Dict] = {
-        "$id": "https://perkeep.org/doc/schema/schema.schema.json",
+        ##########
+        ## BASE ##
+        ##########
+        "$id": "https://perkeep.org/doc/schema/schemablob.schema.json",
         "$schema": "http://json-schema.org/draft-07/schema#",
         "description": "Perkeep Schema Blob",
         "type": "object",
-        "properties": {
-            "camliVersion": {"type": "number"},
-            "camliType": {"type": "string"},
+        "oneOf": [
+            {"$ref": "#/definitions/bytes"},
+            {"$ref": "#/definitions/permanode"},
+        ],
+        ############
+        # SUBTYPES #
+        ############
+        "definitions": {
+            ###########
+            ## BYTES ##
+            ###########
+            "bytes": {
+                "type": "object",
+                "properties": {
+                    "camliVersion": {"const": 1},
+                    "camliType": {"const": "bytes"},
+                    "size": {"type": "number"},
+                    "parts": {
+                        "type": "array",
+                        "items": {"$ref": "#/definitions/bytes-parts"},
+                    },
+                },
+                "required": ["camliVersion", "camliType", "size"],
+            },
+            "bytes-parts": {
+                "type": "object",
+                "properties": {
+                    "blobRef": {"type": "string"},
+                    "bytesRef": {"type": "string"},
+                    "size": {"type": "number"},
+                },
+                "oneOf": [
+                    {"required": ["blobRef"]},
+                    {"required": ["bytesRef"]},
+                ],
+                "required": ["size"],
+            },
+            ###############
+            ## PERMANODE ##
+            ###############
+            "permanode": {
+                "type": "object",
+                "properties": {
+                    "camliVersion": {"const": "1"},
+                    "camliType": {"const": "permanode"},
+                },
+            },
         },
-        "required": ["camliVersion", "camliType"],
     }
 
     @classmethod
@@ -61,6 +113,9 @@ class Schema:
     def __init__(self, blob: Blob, ss: SchemaSuperset) -> None:
         self._blob = blob
         self._ss = ss
+
+    def get_type(self) -> CamliType:
+        return CamliType(self._ss["camliType"])
 
     @classmethod
     def from_blob(cls, blob: Blob) -> "Schema":

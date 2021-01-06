@@ -4,6 +4,7 @@ import pytest
 from perkeepy.blob import Blob
 from perkeepy.schema import Schema
 
+from .schema import CamliType
 from .schema import JsonSchemaValidator
 
 
@@ -14,6 +15,7 @@ def test_json_schema() -> None:
         {
             "camliVersion": 1,
             "camliType": "bytes",
+            "size": 0,
         }
     )
 
@@ -23,30 +25,23 @@ def test_json_schema() -> None:
         }
     )
 
-    assert any(
-        message == "'camliVersion' is a required property"
-        for message in JsonSchemaValidator.validate(
-            {
-                "camliType": "bytes",
-            }
-        )
-    )
-
 
 def test_schema_from_blob() -> None:
     blob: Blob = Blob.from_contents_str(
         """
 {"camliVersion": 1,
  "camliType": "bytes",
+ "size": 11,
   "parts": [
     {"blobRef": "digalg-blobref", "size": 1024},
-    {"bytesRef": "digalg-blobref", "size": 5000000, "offset": 492 },
+    {"bytesRef": "blobref", "size": 5000000, "offset": 492 },
     {"blobRef": "digalg-blobref", "size": 10}
    ]
 }
 """
     )
     schema: Schema = Schema.from_blob(blob)
+    assert schema.get_type() == CamliType.BYTES
 
 
 def test_schema_from_blob_raises() -> None:
@@ -61,5 +56,5 @@ def test_schema_from_blob_raises() -> None:
 }
 """
     )
-    with pytest.raises(Exception, match=".*camliType/*"):
+    with pytest.raises(Exception):
         schema: Schema = Schema.from_blob(blob)
