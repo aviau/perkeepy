@@ -1,3 +1,4 @@
+from typing import Optional
 from typing import Protocol
 
 import base64
@@ -9,6 +10,7 @@ from perkeepy.blob import Blob
 from perkeepy.blob import Ref
 from perkeepy.blobserver.s3 import S3
 from perkeepy.blobserver.s3 import S3Client
+from perkeepy.schema import CamliType
 from perkeepy.schema import Schema
 
 
@@ -23,15 +25,28 @@ def cli(ctx: click.Context, *, bucket: str) -> None:
 
 @cli.command("list")
 @click.option("--only-schemas", is_flag=True)
+@click.option("--schema-type", type=str)
 @click.pass_obj
-def list_(blobserver: S3, *, only_schemas: bool) -> None:
+def list_(
+    blobserver: S3, *, only_schemas: bool, schema_type: Optional[str]
+) -> None:
+    only_schemas = only_schemas or schema_type is not None
+    camli_type: Optional[CamliType] = None
+    if only_schemas:
+        camli_type = CamliType(schema_type)
+
     for ref in blobserver.enumerate_blobs():
+
         if only_schemas:
             blob: Blob = blobserver.fetch(ref)
             try:
-                Schema.from_blob(blob)
+                schema: Schema = Schema.from_blob(blob)
             except Exception:
                 continue
+
+            if camli_type is not None and schema.get_type() != camli_type:
+                continue
+
         click.echo(ref.to_str())
 
 

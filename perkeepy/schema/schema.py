@@ -44,13 +44,12 @@ class JsonSchemaValidator:
                 "properties": {
                     "camliVersion": {"const": 1},
                     "camliType": {"const": "bytes"},
-                    "size": {"type": "number"},
                     "parts": {
                         "type": "array",
                         "items": {"$ref": "#/definitions/bytes-parts"},
                     },
                 },
-                "required": ["camliVersion", "camliType", "size"],
+                "required": ["camliVersion", "camliType"],
             },
             "bytes-parts": {
                 "type": "object",
