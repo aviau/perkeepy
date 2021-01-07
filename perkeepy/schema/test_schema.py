@@ -1,3 +1,6 @@
+import json
+import os
+
 import jsonschema
 import pytest
 
@@ -11,19 +14,32 @@ from .schema import JsonSchemaValidator
 def test_json_schema() -> None:
     """Validate that our JSON Schema is correct."""
 
-    assert JsonSchemaValidator.is_valid(
-        {
-            "camliVersion": 1,
-            "camliType": "bytes",
-            "size": 0,
-        }
+    test_files_dir = os.path.join(
+        os.path.dirname(__file__),
+        "testdata",
+        "jsonschema",
     )
 
-    assert not JsonSchemaValidator.is_valid(
-        {
-            "camliType": "bytes",
-        }
-    )
+    for blob_filename in os.listdir(test_files_dir):
+        blob_filepath: str = os.path.join(
+            test_files_dir,
+            blob_filename,
+        )
+
+        expected_result: str = blob_filepath.split(".")[-2]
+        expected_bool: bool
+        if expected_result == "valid":
+            expected_bool = True
+        elif expected_result == "invalid":
+            expected_bool = False
+        else:
+            raise Exception(f"Unexpected filename {blob_filename}")
+
+        with open(blob_filepath, "r", encoding="utf-8") as f:
+            assert (
+                JsonSchemaValidator.is_valid(json.loads(f.read()))
+                == expected_bool
+            ), f"Expected {blob_filename} to yield {expected_bool}, got {not expected_bool}"
 
 
 def test_schema_from_blob_bytes() -> None:
@@ -37,23 +53,6 @@ def test_schema_from_blob_bytes() -> None:
     {"bytesRef": "blobref", "size": 5000000, "offset": 492 },
     {"blobRef": "digalg-blobref", "size": 10}
    ]
-}
-"""
-        )
-    )
-    assert schema.get_type() == CamliType.BYTES
-
-    schema = Schema.from_blob(
-        Blob.from_contents_str(
-            """
-{"camliVersion": 1,
- "camliType": "bytes",
- "parts": [
-    {"blobRef": "sha224-85c65daed99f1a8e55b1043ec7a88d1bb8829cf54a50a87c9de8b625", "size": 66668},
-    {"blobRef": "sha224-1f4e786c96e41cbdf52be9ca5b0bfdaa6c4e42b8cac2a6240d4cf50b", "size": 79218},
-    {"blobRef": "sha224-5f88afd28c0a568ca9278ec7e4c45c8af97a001e835b76b5ecf255dd", "size": 68778},
-    {"blobRef": "sha224-093e5a9cccd18acfc7f41bfc7ab3f2af05a8f6921b4111f8cfd130cf", "size": 76396}
-  ]
 }
 """
         )

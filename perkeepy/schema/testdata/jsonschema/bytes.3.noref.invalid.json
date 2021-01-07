@@ -1,0 +1,20 @@
+{
+    "camliVersion": 1,
+    "camliType": "bytes",
+    "parts": [{
+            "size": 66668
+        },
+        {
+            "blobRef": "sha224-1f4e786c96e41cbdf52be9ca5b0bfdaa6c4e42b8cac2a6240d4cf50b",
+            "size": 79218
+        },
+        {
+            "blobRef": "sha224-5f88afd28c0a568ca9278ec7e4c45c8af97a001e835b76b5ecf255dd",
+            "size": 68778
+        },
+        {
+            "blobRef": "sha224-093e5a9cccd18acfc7f41bfc7ab3f2af05a8f6921b4111f8cfd130cf",
+            "size": 76396
+        }
+    ]
+}

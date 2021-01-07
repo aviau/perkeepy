@@ -1,0 +1,18 @@
+{
+    "camliVersion": 1,
+    "camliType": "bytes",
+    "parts": [{
+            "blobRef": "digalg-blobref",
+            "size": 1024
+        },
+        {
+            "bytesRef": "blobref",
+            "size": 5000000,
+            "offset": 492
+        },
+        {
+            "blobRef": "digalg-blobref",
+            "size": 10
+        }
+    ]
+}

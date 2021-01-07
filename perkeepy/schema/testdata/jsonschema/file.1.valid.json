@@ -1,0 +1,31 @@
+{
+    "camliType": "file",
+    "camliVersion": 1,
+    "fileName": "pattes_orford.png",
+    "parts": [{
+        "blobRef": "sha224-0ec3f537a82cb2d95b9929bef457ac21ed1ea22d22ff6b5bc401de31",
+        "size": 262144
+    }, {
+        "blobRef": "sha224-2835a980eb488ae1dfbd5e471cd868fccd9ca7e47b403e8a281666a5",
+        "size": 88599
+    }, {
+        "blobRef": "sha224-ed1d80769d615aec8181d04d9f25492843fbb6eea49fe058d8e34ff8",
+        "size": 73889
+    }, {
+        "blobRef": "sha224-f64dd508cb359703862e31989f74d478faa54c62e50266cab86ddb08",
+        "size": 69568
+    }, {
+        "bytesRef": "sha224-0b2bfe9ce5ac54990512c226e172a144a9a38e16b8b0c88aed6099b1",
+        "size": 291060
+    }, {
+        "blobRef": "sha224-0e4615f54e6575c5e260d18cb760340e44cc150c817e8dbb5562d221",
+        "size": 70617
+    }, {
+        "blobRef": "sha224-3d16526dd3bbc81dba64f5562a90c348e58f5929421c8e786a65e2e6",
+        "size": 74981
+    }, {
+        "blobRef": "sha224-f25954248c1d91cc4465fc304b35cd0ec3075431c8d4c06e9fcb42ec",
+        "size": 16558
+    }],
+    "unixMtime": "2020-10-21T04:51:52Z"
+}
