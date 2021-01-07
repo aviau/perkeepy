@@ -10,6 +10,8 @@ from perkeepy.blob import Blob
 from perkeepy.blob import Ref
 from perkeepy.blobserver.s3 import S3
 from perkeepy.blobserver.s3 import S3Client
+from perkeepy.schema import BytesReader
+from perkeepy.schema import BytesSchema
 from perkeepy.schema import CamliType
 from perkeepy.schema import Schema
 
@@ -52,10 +54,21 @@ def list_(
 
 @cli.command("get")
 @click.option("--ref", type=str, required=True)
+@click.option(
+    "--contents", type=bool, required=False, default=False, is_flag=True
+)
 @click.pass_obj
-def get(blobserver: S3, *, ref: str) -> None:
+def get(blobserver: S3, *, ref: str, contents: bool) -> None:
     ref_: Ref = Ref.from_ref_str(ref)
     blob = blobserver.fetch(ref_)
+
+    if contents:
+        schema: Schema = Schema.from_blob(blob)
+        bytes_schema: BytesSchema = schema.as_bytes()
+        bytes_reader: BytesReader = BytesReader(
+            blob=bytes_schema, fetcher=blobserver
+        )
+        full_contents = bytes_reader.read()
 
     if blob.is_utf8():
         click.echo(blob.get_bytes().decode("utf-8"))

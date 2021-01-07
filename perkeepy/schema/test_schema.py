@@ -7,8 +7,8 @@ import pytest
 from perkeepy.blob import Blob
 from perkeepy.schema import Schema
 
+from .json_schema import JsonSchemaValidator
 from .schema import CamliType
-from .schema import JsonSchemaValidator
 
 
 def test_json_schema() -> None:
