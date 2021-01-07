@@ -33,6 +33,7 @@ class JsonSchemaValidator:
             {"$ref": "#/definitions/bytes"},
             {"$ref": "#/definitions/permanode"},
             {"$ref": "#/definitions/file"},
+            {"$ref": "#/definitions/claim"},
         ],
         ############
         # SUBTYPES #
@@ -90,6 +91,64 @@ class JsonSchemaValidator:
                     "camliType",
                     "random",
                     "camliSigner",
+                ],
+            },
+            ###########
+            ## CLAIM ##
+            ###########
+            "claim": {
+                "type": "object",
+                "properties": {
+                    "camliVersion": {"const": 1},
+                    "camliType": {"const": "claim"},
+                    "camliSigner": {"type": "string"},
+                    "camliSig": {"type": "string"},
+                    "claimDate": {"type": "string", "format": "date"},
+                    "permaNode": {"type": "string"},
+                    "attribute": {"type": "string"},
+                },
+                "required": [
+                    "camliVersion",
+                    "camliType",
+                    "claimDate",
+                    "permaNode",
+                    "attribute",
+                    "camliSigner",
+                    "camliSig",
+                ],
+                "oneOf": [
+                    {"$ref": "#/definitions/claim-add-attribute"},
+                    {"$ref": "#/definitions/claim-set-attribute"},
+                    {"$ref": "#/definitions/claim-del-attribute"},
+                ],
+            },
+            "claim-add-attribute": {
+                "type": "object",
+                "properties": {
+                    "claimType": {"const": "add-attribute"},
+                },
+                "required": [
+                    "claimType",
+                    "value",
+                ],
+            },
+            "claim-set-attribute": {
+                "type": "object",
+                "properties": {
+                    "claimType": {"const": "set-attribute"},
+                },
+                "required": [
+                    "claimType",
+                    "value",
+                ],
+            },
+            "claim-del-attribute": {
+                "type": "object",
+                "properties": {
+                    "claimType": {"const": "del-attribute"},
+                },
+                "required": [
+                    "claimType",
                 ],
             },
             ##########
