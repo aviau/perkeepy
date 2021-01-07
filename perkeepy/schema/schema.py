@@ -17,6 +17,7 @@ class CamliType(enum.Enum):
     BYTES = "bytes"
     PERMANODE = "permanode"
     FILE = "file"
+    CLAIM = "claim"
 
 
 class JsonSchemaValidator:
