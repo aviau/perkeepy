@@ -24,7 +24,7 @@ class JsonSchemaValidator:
         ##########
         ## BASE ##
         ##########
-        "$id": "https://perkeep.org/doc/schema/schemablob.schema.json",
+        "$id": "https://perkeep.org/doc/schema/schema.json",
         "$schema": "http://json-schema.org/draft-07/schema#",
         "description": "Perkeep Schema Blob",
         "type": "object",
