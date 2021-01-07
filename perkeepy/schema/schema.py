@@ -16,6 +16,7 @@ from perkeepy.blob import Blob
 class CamliType(enum.Enum):
     BYTES = "bytes"
     PERMANODE = "permanode"
+    FILE = "file"
 
 
 class JsonSchemaValidator:
@@ -31,6 +32,7 @@ class JsonSchemaValidator:
         "oneOf": [
             {"$ref": "#/definitions/bytes"},
             {"$ref": "#/definitions/permanode"},
+            {"$ref": "#/definitions/file"},
         ],
         ############
         # SUBTYPES #
@@ -44,14 +46,22 @@ class JsonSchemaValidator:
                 "properties": {
                     "camliVersion": {"const": 1},
                     "camliType": {"const": "bytes"},
-                    "parts": {
-                        "type": "array",
-                        "items": {"$ref": "#/definitions/bytes-parts"},
-                    },
                 },
                 "required": ["camliVersion", "camliType"],
+                "allOf": [
+                    {"$ref": "#/definitions/bytes-properties"},
+                ],
             },
-            "bytes-parts": {
+            "bytes-properties": {
+                "type": "object",
+                "properties": {
+                    "parts": {
+                        "type": "array",
+                        "items": {"$ref": "#/definitions/bytes-part"},
+                    },
+                },
+            },
+            "bytes-part": {
                 "type": "object",
                 "properties": {
                     "blobRef": {"type": "string"},
@@ -80,6 +90,23 @@ class JsonSchemaValidator:
                     "camliType",
                     "random",
                     "camliSigner",
+                ],
+            },
+            ##########
+            ## FILE ##
+            ##########
+            "file": {
+                "type": "object",
+                "properties": {
+                    "camliVersion": {"const": 1},
+                    "camliType": {"const": "file"},
+                },
+                "required": [
+                    "camliVersion",
+                    "camliType",
+                ],
+                "allOf": [
+                    {"$ref": "#/definitions/bytes-properties"},
                 ],
             },
         },
