@@ -80,14 +80,26 @@ class Schema:
     def as_bytes(self) -> "BytesSchema":
         return BytesSchema(schema=self)
 
+    def as_file(self) -> "FileSchema":
+        return FileSchema(schema=self)
+
 
 class BytesSchema:
     def __init__(self, schema: Schema) -> None:
         if schema.get_type() != CamliType.BYTES:
             raise Exception(
-                f"Invalid camliType: got {schema.get_type()} and expected {CamliType.BYTES.value})"
+                f"Invalid camliType: got {schema.get_type()} and expected {CamliType.BYTES.value}"
             )
         self._schema = schema
 
     def get_parts(self) -> List[BytesPart]:
         return self._schema.get_superset().get("parts", [])
+
+
+class FileSchema(BytesSchema):
+    def __init__(self, schema: Schema) -> None:
+        if schema.get_type() != CamliType.FILE:
+            raise Exception(
+                f"Invalid camliype: got {schema.get_type()} and expected {CamliType.FILE.value}"
+            )
+        self._schema = schema

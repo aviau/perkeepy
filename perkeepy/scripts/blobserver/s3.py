@@ -1,5 +1,6 @@
 from typing import Optional
 from typing import Protocol
+from typing import Union
 
 import base64
 
@@ -13,6 +14,7 @@ from perkeepy.blobserver.s3 import S3Client
 from perkeepy.schema import BytesReader
 from perkeepy.schema import BytesSchema
 from perkeepy.schema import CamliType
+from perkeepy.schema import FileSchema
 from perkeepy.schema import Schema
 
 
@@ -64,11 +66,23 @@ def get(blobserver: S3, *, ref: str, contents: bool) -> None:
 
     if contents:
         schema: Schema = Schema.from_blob(blob)
-        bytes_schema: BytesSchema = schema.as_bytes()
+        schema_to_read: Union[BytesSchema, FileSchema]
+
+        if schema.get_type() == CamliType.FILE:
+            schema_to_read = schema.as_file()
+        elif schema.get_type() == CamliType.BYTES:
+            schema_to_read = schema.as_bytes()
+        else:
+            click.echo(f"Don't know how to read a {schema.get_type()} schema")
+            return
+
         bytes_reader: BytesReader = BytesReader(
-            blob=bytes_schema, fetcher=blobserver
+            blob=schema_to_read,
+            fetcher=blobserver,
         )
-        full_contents = bytes_reader.read()
+        full_contents: bytes = bytes_reader.read()
+        click.echo(full_contents)
+        return
 
     if blob.is_utf8():
         click.echo(blob.get_bytes().decode("utf-8"))
