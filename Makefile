@@ -31,8 +31,13 @@ mypy: venv
 	    perkeepy setup.py
 
 .PHONY: check-copyright
-check-copyright:
-	find perkeepy | grep "\.py$$" | xargs -d '\n' python -m perkeepy.scripts.copyrightify --check
+check-copyright: venv
+	find perkeepy \
+	    | grep "\.py$$" \
+	    | xargs \
+	        -d '\n' \
+	        venv/bin/python perkeepy/scripts/copyrightify.py \
+	            --check
 
 .PHONY: lint
 lint: venv mypy check-copyright
