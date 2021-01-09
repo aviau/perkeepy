@@ -6,6 +6,7 @@ from typing import Union
 from perkeepy.blob import Blob
 from perkeepy.blob import Fetcher
 from perkeepy.blob import Ref
+from perkeepy.typing import Reader
 
 from .schema import BytesPart
 from .schema import BytesSchema
@@ -57,3 +58,7 @@ class BytesReader:
                 full_read += blob_ref_blob.get_bytes()
 
         return bytes(full_read)
+
+    @staticmethod
+    def _assert_implements_reader(br: "BytesReader") -> Reader:
+        return br
