@@ -30,8 +30,12 @@ mypy: venv
 	    --cache-dir=.mypy_cache \
 	    perkeepy setup.py
 
+.PHONY: check-copyright
+check-copyright:
+	find perkeepy | grep "\.py$$" | xargs -d '\n' python -m perkeepy.scripts.copyrightify --check
+
 .PHONY: lint
-lint: venv mypy
+lint: venv mypy check-copyright
 	venv/bin/black \
 	    --config=pyproject.toml \
 	    --check \
