@@ -12,6 +12,8 @@ import boto3
 from perkeepy.blob import Ref
 from perkeepy.blob import Blob
 from perkeepy.blobserver.s3 import S3
+from perkeepy.schema import Schema
+from perkeepy.schema import BytesReader
 
 # Browse a blobserver on S3
 s3_client: S3Client = boto3.client("s3")
@@ -24,4 +26,10 @@ blob = blobserver.fetch(
 
 # Enumerate all blobs
 blobs = blobserver.enumerate_blobs()
+
+# Read files
+contents: bytes = BytesReader(
+    blob=Schema.from_blob(blob).as_file()
+    fetcher=blobserver,
+).read()
 ```
