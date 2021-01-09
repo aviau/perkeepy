@@ -8,6 +8,7 @@ from botocore.response import StreamingBody
 
 from perkeepy.blob import Blob
 from perkeepy.blob import Ref
+from perkeepy.blobserver import Storage
 
 
 class S3ObjectMetadata(TypedDict):
@@ -85,7 +86,5 @@ class S3:
         return blob
 
     @staticmethod
-    def _assert_implements_storage(s3: "S3") -> None:
-        from perkeepy.blobserver import Storage
-
-        storage: Storage = s3
+    def _assert_implements_storage(s3: "S3") -> Storage:
+        return s3
