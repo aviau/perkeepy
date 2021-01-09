@@ -5,5 +5,5 @@ from .ref import Ref
 
 
 class Fetcher(Protocol):
-    def fetch(self, ref: Ref) -> Blob:
+    def fetch_blob(self, ref: Ref) -> Blob:
         ...

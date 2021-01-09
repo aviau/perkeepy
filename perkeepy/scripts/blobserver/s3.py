@@ -42,7 +42,7 @@ def list_(
     for ref in blobserver.enumerate_blobs():
 
         if only_schemas:
-            blob: Blob = blobserver.fetch(ref)
+            blob: Blob = blobserver.fetch_blob(ref)
             try:
                 schema: Schema = Schema.from_blob(blob)
             except Exception:
@@ -62,7 +62,7 @@ def list_(
 @click.pass_obj
 def get(blobserver: S3, *, ref: str, contents: bool) -> None:
     ref_: Ref = Ref.from_ref_str(ref)
-    blob = blobserver.fetch(ref_)
+    blob = blobserver.fetch_blob(ref_)
 
     if contents:
         schema: Schema = Schema.from_blob(blob)

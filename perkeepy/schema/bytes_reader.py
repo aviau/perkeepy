@@ -42,7 +42,7 @@ class BytesReader:
 
             if part.get("bytesRef"):
                 bytes_ref_str: str = part["bytesRef"]
-                bytes_ref_blob: Blob = self._fetcher.fetch(
+                bytes_ref_blob: Blob = self._fetcher.fetch_blob(
                     Ref.from_ref_str(bytes_ref_str)
                 )
                 full_read += BytesReader(
@@ -52,7 +52,7 @@ class BytesReader:
 
             elif part.get("blobRef"):
                 blob_ref_str: str = part["blobRef"]
-                blob_ref_blob: Blob = self._fetcher.fetch(
+                blob_ref_blob: Blob = self._fetcher.fetch_blob(
                     Ref.from_ref_str(blob_ref_str)
                 )
                 full_read += blob_ref_blob.get_bytes()

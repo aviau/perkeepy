@@ -74,7 +74,7 @@ class S3:
 
             after = ref
 
-    def fetch(self, ref: Ref) -> Blob:
+    def fetch_blob(self, ref: Ref) -> Blob:
         resp: S3GetObjectResponse = self.client.get_object(
             Bucket=self.bucket,
             Key=self.dirprefix + ref.to_str(),
@@ -84,6 +84,9 @@ class S3:
             readall=lambda: resp["Body"].read(),
         )
         return blob
+
+    def receive_blob(self, blob: Blob) -> None:
+        raise NotImplementedError()
 
     @staticmethod
     def _assert_implements_storage(s3: "S3") -> Storage:
