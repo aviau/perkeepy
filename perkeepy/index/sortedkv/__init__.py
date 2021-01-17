@@ -11,26 +11,3 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from typing import Optional
-
-from perkeepy.blob import Ref
-from perkeepy.schema import CamliType
-
-
-class BlobMeta:
-    def __init__(
-        self, ref: Ref, size: int, schema_type: Optional[CamliType]
-    ) -> None:
-        self._ref = ref
-        self._size = size
-        self._schema_type = schema_type
-
-    def get_ref(self) -> Ref:
-        return self._ref
-
-    def get_size(self) -> int:
-        return self._size
-
-    def get_schema_type(self) -> Optional[CamliType]:
-        return self._schema_type

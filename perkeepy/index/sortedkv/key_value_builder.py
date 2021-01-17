@@ -12,25 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional
+from dataclasses import dataclass
 
+from perkeepy.blob import Blob
 from perkeepy.blob import Ref
-from perkeepy.schema import CamliType
 
 
-class BlobMeta:
-    def __init__(
-        self, ref: Ref, size: int, schema_type: Optional[CamliType]
-    ) -> None:
-        self._ref = ref
-        self._size = size
-        self._schema_type = schema_type
+@dataclass
+class HaveValue:
+    indexed: bool
 
-    def get_ref(self) -> Ref:
-        return self._ref
 
-    def get_size(self) -> int:
-        return self._size
+class KeyValueBuilder:
+    """
+    Builds keys and values for SortedKVIndex
+    """
 
-    def get_schema_type(self) -> Optional[CamliType]:
-        return self._schema_type
+    def get_have_key(self, ref: Ref) -> str:
+        return f"have:{ref.to_str()}"
+
+    def get_have_value(self, blob: Blob) -> str:
+        raise NotImplementedError()
+
+    def parse_have_value(self, value: str) -> HaveValue:
+        indexed: bool = value.endswith("|indexed")
+        return HaveValue(indexed=indexed)

@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Optional
 from typing import Protocol
 
+from perkeepy.blob import Ref
 from perkeepy.blobserver import BlobReceiver
 
 from .blob_meta import BlobMeta
 
 
 class Indexer(BlobReceiver, Protocol):
-    def get_blob_meta(self) -> BlobMeta:
+    def get_blob_meta(self, ref: Ref) -> Optional[BlobMeta]:
         ...
