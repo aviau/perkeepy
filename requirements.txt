@@ -1,3 +1,3 @@
-boto3==1.16.47
-click==7.1.2
+boto3==1.18.9
+click==8.0.1
 jsonschema==3.2.0
