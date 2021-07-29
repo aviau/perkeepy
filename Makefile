@@ -53,7 +53,7 @@ lint: venv mypy check-copyright
 
 .PHONY: build
 build: venv
-	venv/bin/pip install twine==3.3.0 build==0.1.0
+	venv/bin/pip install twine==3.4.2 build==0.5.1
 	rm -rf dist
 	venv/bin/python -m build --sdist --wheel --outdir dist/
 
