@@ -12,13 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional
-from typing import Protocol
-
-from .blob import Blob
-from .ref import Ref
-
-
-class Fetcher(Protocol):
-    def fetch_blob(self, ref: Ref) -> Optional[Blob]:
-        ...
+from .memory import MemoryBlobServer
