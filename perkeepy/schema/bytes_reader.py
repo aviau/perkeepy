@@ -15,7 +15,6 @@
 from typing import List
 from typing import Optional
 from typing import Protocol
-from typing import Union
 
 from perkeepy.blob import Blob
 from perkeepy.blob import Fetcher
@@ -24,7 +23,6 @@ from perkeepy.typing import Reader
 
 from .schema import BytesPart
 from .schema import BytesSchema
-from .schema import FileSchema
 from .schema import Schema
 
 
@@ -56,9 +54,12 @@ class BytesReader:
 
             if part.get("bytesRef"):
                 bytes_ref_str: str = part["bytesRef"]
-                bytes_ref_blob: Blob = self._fetcher.fetch_blob(
+                bytes_ref_blob: Optional[Blob] = self._fetcher.fetch_blob(
                     Ref.from_ref_str(bytes_ref_str)
                 )
+                if not bytes_ref_blob:
+                    raise Exception(f"blob not found {bytes_ref_str}")
+
                 full_read += BytesReader(
                     blob=BytesSchema(schema=Schema.from_blob(bytes_ref_blob)),
                     fetcher=self._fetcher,
@@ -66,9 +67,12 @@ class BytesReader:
 
             elif part.get("blobRef"):
                 blob_ref_str: str = part["blobRef"]
-                blob_ref_blob: Blob = self._fetcher.fetch_blob(
+                blob_ref_blob: Optional[Blob] = self._fetcher.fetch_blob(
                     Ref.from_ref_str(blob_ref_str)
                 )
+                if not blob_ref_blob:
+                    raise Exception(f"blob not found {blob_ref_str}")
+
                 full_read += blob_ref_blob.get_bytes()
 
         return bytes(full_read)

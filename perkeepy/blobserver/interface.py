@@ -19,7 +19,6 @@ from typing import Protocol
 from perkeepy.blob import Blob
 from perkeepy.blob import Fetcher
 from perkeepy.blob import Ref
-from perkeepy.typing import Reader
 
 
 class BlobEnumerator(Protocol):
