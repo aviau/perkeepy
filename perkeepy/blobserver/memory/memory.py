@@ -31,7 +31,7 @@ class MemoryBlobServer:
     def enumerate_blobs(self, after: Optional[Ref] = None) -> Iterator[Ref]:
         if after:
             raise Exception("after is not yet supported")
-        for blob in self.blobs.values():
+        for _, blob in sorted(self.blobs.items(), key=lambda x: x[0]):
             yield blob.get_ref()
 
     def fetch_blob(self, ref: Ref) -> Optional[Blob]:
