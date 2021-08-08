@@ -23,6 +23,10 @@ from perkeepy.blob import Ref
 
 class BlobEnumerator(Protocol):
     def enumerate_blobs(self, after: Optional[Ref]) -> Iterator[Ref]:
+        """
+        Returns refs for all stored bobs, sorted, as long as they are
+        lexicographically greater than 'after' (if provided).
+        """
         ...
 
 
