@@ -16,7 +16,6 @@ from typing import Iterator
 
 import json
 import os
-import tempfile
 from contextlib import contextmanager
 from dataclasses import dataclass
 
@@ -30,9 +29,9 @@ from perkeepy.blobserver.memory import MemoryBlobServer
 from perkeepy.gpg import GPGKeyInspector
 from perkeepy.gpg import GPGSignatureVerifier
 from perkeepy.gpg import GPGSigner
-from perkeepy.gpg.subprocess import SubprocessGPGKeyInspector
-from perkeepy.gpg.subprocess import SubprocessGPGSignatureVerifier
-from perkeepy.gpg.subprocess import SubprocessGPGSigner
+from perkeepy.gpg.pgpy import PGPYGPGKeyInspector
+from perkeepy.gpg.pgpy import PGPYGPGSignatureVerifier
+from perkeepy.gpg.pgpy import PGPYGPGSigner
 
 
 @dataclass
@@ -66,24 +65,13 @@ def get_test_env() -> Iterator[JSONSignTestEnv]:
     ) as key_file:
         key_1_priv: str = key_file.read()
 
-    with tempfile.TemporaryDirectory() as signer_tempdir:
-
-        # Create a GPG signer with the first public key
-        gpg_signer: GPGSigner = SubprocessGPGSigner(
-            gpg_home_path=signer_tempdir,
-            private_key_data=key_1_priv,
-        )
-
-        try:
-            yield JSONSignTestEnv(
-                bs=bs,
-                gpg_key_inspector=SubprocessGPGKeyInspector(),
-                gpg_signer=gpg_signer,
-                gpg_signature_verifier=SubprocessGPGSignatureVerifier(),
-                public_key_ref=public_key_blob.get_ref(),
-            )
-        finally:
-            pass
+    yield JSONSignTestEnv(
+        bs=bs,
+        gpg_key_inspector=PGPYGPGKeyInspector(),
+        gpg_signer=PGPYGPGSigner(armored_private_keys=[key_1_priv]),
+        gpg_signature_verifier=PGPYGPGSignatureVerifier(),
+        public_key_ref=public_key_blob.get_ref(),
+    )
 
 
 def test_jsonsign_and_verify() -> None:
@@ -94,7 +82,7 @@ def test_jsonsign_and_verify() -> None:
             jsonsign.sign_json_str(
                 unsigned_json_str="aa",
                 gpg_signer=test_env.gpg_signer,
-                gpg_key_inspector=SubprocessGPGKeyInspector(),
+                gpg_key_inspector=test_env.gpg_key_inspector,
                 fetcher=test_env.bs,
             )
 
@@ -161,4 +149,44 @@ def test_jsonsign_and_verify() -> None:
                 gpg_signature_verifier=test_env.gpg_signature_verifier,
             )
             == True
+        )
+
+
+def test_signature_from_go_implementation() -> None:
+    public_key_blob_str: str = """-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+xsBNBGAHnVgBCADerM1lth1pgduiuOOhu6vFxnt5PoZbH+PRB/iJflgmBrswryPr
+5oyalJrv6k5mnbgHumz46OaZFW6oaOpO5xLHVvcNuPjJceyPV2IeSz5PLm1SAlge
+gSgCWGpAdcNsj+FIdftd7d1/mL42S9DQ4xByrkTkY06mAnci8oy5mplNHGa6nnib
+sm5iWPcGX6Rvz3YCkm/kdKyYhBzoBJFUh4r13LxCiF6aefHN1NXvJQsleAPjUsTl
+aouhfumRpKnEol/tJJuys/LnCC+tkU1D6qiAI+ALnCzWKhbCgfbt2InimxEC3YQZ
+MfoyWlkBlLxT9rDBf8rkXuF7qXNKiPA4w571ABEBAAE=
+=4ilV
+-----END PGP PUBLIC KEY BLOCK-----
+"""
+    public_key_blob = Blob.from_contents_str(public_key_blob_str)
+    assert (
+        public_key_blob.get_ref().to_str()
+        == "sha224-755426de872509a10461cb908a2ab8012df9f63706aaa6994f0ad895"
+    )
+
+    signed_json_object: bytes = b"""{"camliVersion": 1,
+  "camliSigner": "sha224-755426de872509a10461cb908a2ab8012df9f63706aaa6994f0ad895",
+  "camliType": "permanode",
+  "claimDate": "2021-08-08T21:49:57.225132035Z",
+  "random": "wNqQLPEH/aq/lGYN2D43EV1UEu8="
+,"camliSig":"wsBcBAABCAAQBQJhEFGFCRAwgMgbA5XuOQAAMDcIADiyzvzCAhjcwbmLuSHicMihrwHRC+4S/GxERNiqf+5nW/lCbwUa9quvFadukc0+OK18IiqYPXnPe9OAxgH29Yds60WtzVATOrSqarmWuy48gZekQ8m+r3qRMs4fbu0PgUSnz3bPYeNwx+4NncoO1lwM9o9brA9HRHkDmuJ1jYWTuuDDsC5NbuHxwsLD1ATF9JH0S/NWNFpl0El+9RfsbRg7FdC3O37Dqu7nO9giM5XQDViNiLT/gKStck28COdhyHJvB+l0egqir5oQJ1wODErcOdVpS7k7bAfS9+I1WBuLs1++bVk8beVBp4GsJGKRgor1o+7FFFqDUMEDIPyE43o==c+i6"}"""
+
+    with get_test_env() as test_env:
+        # Load the public key
+        test_env.bs.receive_blob(public_key_blob)
+
+        # Verify the signature
+        assert (
+            jsonsign.verify_json_signature(
+                signed_json_object=signed_json_object,
+                fetcher=test_env.bs,
+                gpg_signature_verifier=test_env.gpg_signature_verifier,
+            )
+            is True
         )
