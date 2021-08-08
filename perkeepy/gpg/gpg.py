@@ -16,14 +16,11 @@ from typing import Protocol
 
 
 class GPGSigner(Protocol):
-    def sign_detached_armored(self, *, data: bytes) -> str:
-        """Returns an ASCII-Armored signature of data"""
-        ...
-
-
-class GPGSignerFactory(Protocol):
-    def get_gpg_signer(self, *, fingerprint: str) -> GPGSigner:
-        """Returns a GPG signer for the given key fingerprint"""
+    def sign_detached_armored(self, *, fingerprint: str, data: bytes) -> str:
+        """
+        Returns an ASCII-Armored signature of data, signed with the private
+        key corresponding to the given fingerprint.
+        """
         ...
 
 
@@ -34,14 +31,15 @@ class GPGKeyInspector(Protocol):
 
 
 class GPGSignatureVerifier(Protocol):
-    def verify_signature(self, *, data: bytes, signature: str) -> bool:
-        """Verify a GPG signature for the given data"""
-        ...
-
-
-class GPGSignatureVerifierFactory(Protocol):
-    def get_gpg_signature_verifier(
-        self, *, public_key: str
-    ) -> GPGSignatureVerifier:
-        """Returns a GPG signature verifier for a given public key"""
+    def verify_signature(
+        self,
+        *,
+        data: bytes,
+        armored_detached_signature: str,
+        armored_public_key: str,
+    ) -> bool:
+        """
+        Verify that the given armored signature is valid for the given data
+        and that it was made with the given armored public key.
+        """
         ...

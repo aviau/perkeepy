@@ -13,6 +13,5 @@
 # limitations under the License.
 
 from .gpg import GPGKeyInspector
-from .gpg import GPGSignatureVerifierFactory
+from .gpg import GPGSignatureVerifier
 from .gpg import GPGSigner
-from .gpg import GPGSignerFactory

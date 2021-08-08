@@ -15,8 +15,7 @@
 import os
 import tempfile
 
-from .gpg import GPGSigner
-from .subprocess import SubprocessGPGSignerFactory
+from .subprocess import SubprocessGPGSigner
 
 
 def test_subprocess_gpg_signer() -> None:
@@ -29,10 +28,16 @@ def test_subprocess_gpg_signer() -> None:
         key_priv: str = f.read()
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        signer: GPGSigner = SubprocessGPGSignerFactory(
-            gpg_home_path=tmpdir,
-            private_key_data=key_priv,
-        ).get_gpg_signer(fingerprint="FBB89AA320A2806FE497C0492931A67C26F5ABDA")
-        assert signer.sign_detached_armored(data=b"aa").startswith(
-            "-----BEGIN PGP SIGNATURE-----"
+        assert (
+            SubprocessGPGSigner(
+                gpg_home_path=tmpdir,
+                private_key_data=key_priv,
+            )
+            .sign_detached_armored(
+                fingerprint="FBB89AA320A2806FE497C0492931A67C26F5ABDA",
+                data=b"aa",
+            )
+            .startswith(
+                "-----BEGIN PGP SIGNATURE-----",
+            )
         )

@@ -25,10 +25,8 @@ from perkeepy.blob import Blob
 from perkeepy.blob import Fetcher
 from perkeepy.blob import Ref
 from perkeepy.gpg import GPGKeyInspector
-from perkeepy.gpg import GPGSignatureVerifierFactory
+from perkeepy.gpg import GPGSignatureVerifier
 from perkeepy.gpg import GPGSigner
-from perkeepy.gpg import GPGSignerFactory
-from perkeepy.gpg.gpg import GPGSignatureVerifier
 
 from .camlisig import CamliSig
 
@@ -44,7 +42,7 @@ _SIGNATURE_DELIMITER: Final[bytes] = b',"camliSig":"'
 def sign_json_str(
     *,
     unsigned_json_str: str,
-    gpg_signer_factory: GPGSignerFactory,
+    gpg_signer: GPGSigner,
     gpg_key_inspector: GPGKeyInspector,
     fetcher: Fetcher,
 ) -> bytes:
@@ -70,7 +68,7 @@ def sign_json_str(
 
     return sign_json(
         unsigned_json_object=cast(_SignableJSON, json_object),
-        gpg_signer_factory=gpg_signer_factory,
+        gpg_signer=gpg_signer,
         gpg_key_inspector=gpg_key_inspector,
         fetcher=fetcher,
     )
@@ -79,7 +77,7 @@ def sign_json_str(
 def sign_json(
     *,
     unsigned_json_object: _SignableJSON,
-    gpg_signer_factory: GPGSignerFactory,
+    gpg_signer: GPGSigner,
     gpg_key_inspector: GPGKeyInspector,
     fetcher: Fetcher,
 ) -> bytes:
@@ -103,11 +101,10 @@ def sign_json(
         armored_key=camli_signer_public_key_blob.get_bytes().decode(),
     )
 
-    # Create a GPG Signer
-    gpg_signer: GPGSigner = gpg_signer_factory.get_gpg_signer(
-        fingerprint=camli_signer_key_fingerprint
+    # Sign
+    armored_signature: str = gpg_signer.sign_detached_armored(
+        fingerprint=camli_signer_key_fingerprint, data=json_bytes
     )
-    armored_signature: str = gpg_signer.sign_detached_armored(data=json_bytes)
     camli_signature: str = CamliSig.from_armored_gpg_signature(
         armored_signature
     )
@@ -123,7 +120,7 @@ def verify_json_signature(
     *,
     signed_json_object: bytes,
     fetcher: Fetcher,
-    gpg_signature_verifier_factory: GPGSignatureVerifierFactory,
+    gpg_signature_verifier: GPGSignatureVerifier,
 ) -> bool:
     # Load the JSON object
     json_obj: Any = json.loads(signed_json_object)
@@ -160,17 +157,11 @@ def verify_json_signature(
     signed_bytes_end_index = signed_json_object.rindex(_SIGNATURE_DELIMITER)
     signed_bytes: bytes = signed_json_object[:signed_bytes_end_index]
 
-    # Create a GPG signature verifier
-    gpg_signature_veifier: GPGSignatureVerifier = (
-        gpg_signature_verifier_factory.get_gpg_signature_verifier(
-            public_key=camli_signer_public_key
-        )
-    )
-
     # Verify the signature
-    result = gpg_signature_veifier.verify_signature(
+    result = gpg_signature_verifier.verify_signature(
         data=signed_bytes,
-        signature=camli_signature_armored,
+        armored_detached_signature=camli_signature_armored,
+        armored_public_key=camli_signer_public_key,
     )
 
     return result
