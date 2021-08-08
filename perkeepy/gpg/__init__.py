@@ -12,5 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .jsonsign import sign_json
-from .jsonsign import sign_json_str
+from .gpg import GPGKeyInspector
+from .gpg import GPGSigner
+from .gpg import GPGSignerFactory

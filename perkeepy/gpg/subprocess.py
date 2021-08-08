@@ -12,34 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import TYPE_CHECKING
 from typing import Iterator
-from typing import Optional
-from typing import Protocol
-from typing import TypedDict
 
 import tempfile
 from contextlib import contextmanager
 
 from gnupg import GPG
 
-
-class GPGSigner(Protocol):
-    def sign_detached_armored(self, *, data: bytes) -> str:
-        """Returns an ASCII-Armored signature of data"""
-        ...
-
-
-class GPGSignerFactory(Protocol):
-    def get_gpg_signer(self, *, fingerprint: str) -> GPGSigner:
-        """Returns a GPG signer for the given key fingerprint"""
-        ...
-
-
-class GPGKeyInspector(Protocol):
-    def get_key_fingerprint(self, *, armored_key: str) -> str:
-        """Returns the fingerprint of an armored GPG key"""
-        ...
+from .gpg import GPGKeyInspector
+from .gpg import GPGSigner
+from .gpg import GPGSignerFactory
 
 
 class SubprocessGPGKeyInspector:

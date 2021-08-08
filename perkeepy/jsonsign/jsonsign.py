@@ -23,61 +23,23 @@ import json
 from perkeepy.blob import Blob
 from perkeepy.blob import Fetcher
 from perkeepy.blob import Ref
+from perkeepy.gpg import GPGKeyInspector
+from perkeepy.gpg import GPGSigner
+from perkeepy.gpg import GPGSignerFactory
 
-from .gpg import GPGSigner
-from .gpg import GPGSignerFactory
-from .gpg import SubprocessGPGKeyInspector
+from .camlisig import CamliSig
 
 
-class SignableJSON(TypedDict):
+class _SignableJSON(TypedDict):
     camliVersion: Literal[1]
     camliSigner: str
-
-
-class CamliSig:
-    @staticmethod
-    def from_armored_gpg_signature(armored_gpg_signature: str) -> str:
-        # Cleanup before looking for indexes
-        armored_gpg_signature = armored_gpg_signature.strip()
-
-        # Look for start and end indexes
-        start_index: int = armored_gpg_signature.index("\n\n")
-        end_index: int = armored_gpg_signature.index("\n-----")
-
-        # Isolate the sig
-        signature: str = armored_gpg_signature[start_index:end_index]
-
-        # Remove newlines
-        signature = signature.replace("\n", "")
-
-        return signature
-
-    @staticmethod
-    def to_armored_gpg_signature(camli_sig: str) -> str:
-        armored_gpg_signature: str = "-----BEGIN PGP SIGNATURE-----\n\n"
-
-        # Extract the CRC
-        last_equal_index: int = camli_sig.rindex("=")
-        crc: str = camli_sig[last_equal_index:]
-        camli_sig = camli_sig[:last_equal_index]
-
-        chunks: list[str] = []
-        while camli_sig:
-            chunks.append(camli_sig[:64])
-            camli_sig = camli_sig[64:]
-        chunks.append(crc)
-
-        armored_gpg_signature += "\n".join(chunks)
-        armored_gpg_signature += "\n"
-
-        armored_gpg_signature += "-----END PGP SIGNATURE----\n"
-        return armored_gpg_signature
 
 
 def sign_json_str(
     *,
     unsigned_json_str: str,
     gpg_signer_factory: GPGSignerFactory,
+    gpg_key_inspector: GPGKeyInspector,
     fetcher: Fetcher,
 ) -> str:
     """
@@ -101,16 +63,18 @@ def sign_json_str(
         )
 
     return sign_json(
-        unsigned_json_object=cast(SignableJSON, json_object),
+        unsigned_json_object=cast(_SignableJSON, json_object),
         gpg_signer_factory=gpg_signer_factory,
+        gpg_key_inspector=gpg_key_inspector,
         fetcher=fetcher,
     )
 
 
 def sign_json(
     *,
-    unsigned_json_object: SignableJSON,
+    unsigned_json_object: _SignableJSON,
     gpg_signer_factory: GPGSignerFactory,
+    gpg_key_inspector: GPGKeyInspector,
     fetcher: Fetcher,
 ) -> str:
 
@@ -129,10 +93,8 @@ def sign_json(
     )
     if not camli_signer_public_key_blob:
         raise Exception(f"Could not fetch public key for signer {camli_signer}")
-    camli_signer_key_fingerprint: str = (
-        SubprocessGPGKeyInspector().get_key_fingerprint(
-            camli_signer_public_key_blob.get_bytes().decode()
-        )
+    camli_signer_key_fingerprint: str = gpg_key_inspector.get_key_fingerprint(
+        armored_key=camli_signer_public_key_blob.get_bytes().decode(),
     )
 
     # Create a GPG Signer

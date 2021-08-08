@@ -26,54 +26,18 @@ from perkeepy.blob import Blob
 from perkeepy.blob import Ref
 from perkeepy.blobserver import Storage
 from perkeepy.blobserver.memory import MemoryBlobServer
+from perkeepy.gpg import GPGSignerFactory
+from perkeepy.gpg.gpg import GPGKeyInspector
+from perkeepy.gpg.subprocess import SubprocessGPGKeyInspector
+from perkeepy.gpg.subprocess import SubprocessGPGSignerFactory
 
-from .gpg import GPGSignerFactory
-from .gpg import SubprocessGPGSignerFactory
-from .jsonsign import CamliSig
 from .jsonsign import sign_json_str
-
-
-def test_camlisig() -> None:
-    armored_signature: str = """
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAABAgAGBQJO3/DNAAoJECkxpnwm9avaf6EH/3HVJC+6ybOJDTJIInQBum9Y
-FzC1I8b6xNLN0yFdDtypZUotvW9pvU2pVpbfNSmcW/OL02eR2kgL55dHxbUjbN9C
-vXlvSb2QAy8IQMdA3721pMR41rNNn08w5bbAWgW/suiyN5z0pIKn3vPEHbguGeNQ
-BStgOSq1WkgCozNBxPA7V5mcUx2rUOsWHYSmEY8foPdeDYcrw2pvxPN8kXk6zBrZ
-ilrtaY+Yx5zPLkq8trhHPgCdf4chL+Y2kmxXMKYjU+bkmJaNycUURdncZakTEv9Y
-fbBp04kbHIaN6DttEoXuU96nTyuCFhIftmV+GPbvGpl3e2yhmae5hUUt1g0o8FE=
-=aSCK
------END PGP SIGNATURE-----
-"""
-    expected_camlisig: str = "iQEcBAABAgAGBQJO3/DNAAoJECkxpnwm9avaf6EH/3HVJC+6ybOJDTJIInQBum9YFzC1I8b6xNLN0yFdDtypZUotvW9pvU2pVpbfNSmcW/OL02eR2kgL55dHxbUjbN9CvXlvSb2QAy8IQMdA3721pMR41rNNn08w5bbAWgW/suiyN5z0pIKn3vPEHbguGeNQBStgOSq1WkgCozNBxPA7V5mcUx2rUOsWHYSmEY8foPdeDYcrw2pvxPN8kXk6zBrZilrtaY+Yx5zPLkq8trhHPgCdf4chL+Y2kmxXMKYjU+bkmJaNycUURdncZakTEv9YfbBp04kbHIaN6DttEoXuU96nTyuCFhIftmV+GPbvGpl3e2yhmae5hUUt1g0o8FE==aSCK"
-    expected_restored: str = """-----BEGIN PGP SIGNATURE-----
-
-iQEcBAABAgAGBQJO3/DNAAoJECkxpnwm9avaf6EH/3HVJC+6ybOJDTJIInQBum9Y
-FzC1I8b6xNLN0yFdDtypZUotvW9pvU2pVpbfNSmcW/OL02eR2kgL55dHxbUjbN9C
-vXlvSb2QAy8IQMdA3721pMR41rNNn08w5bbAWgW/suiyN5z0pIKn3vPEHbguGeNQ
-BStgOSq1WkgCozNBxPA7V5mcUx2rUOsWHYSmEY8foPdeDYcrw2pvxPN8kXk6zBrZ
-ilrtaY+Yx5zPLkq8trhHPgCdf4chL+Y2kmxXMKYjU+bkmJaNycUURdncZakTEv9Y
-fbBp04kbHIaN6DttEoXuU96nTyuCFhIftmV+GPbvGpl3e2yhmae5hUUt1g0o8FE=
-=aSCK
------END PGP SIGNATURE----
-"""
-
-    assert (
-        CamliSig.from_armored_gpg_signature(armored_signature)
-        == expected_camlisig
-    )
-
-    assert (
-        CamliSig.to_armored_gpg_signature(expected_camlisig)
-        == expected_restored
-    )
 
 
 @dataclass
 class JSONSignTestEnv:
     bs: Storage
+    gpg_key_inspector: GPGKeyInspector
     signer_factory: GPGSignerFactory
     private_key_fingerprint: str
     public_key_ref: Ref
@@ -112,6 +76,7 @@ def get_test_env() -> Iterator[JSONSignTestEnv]:
         try:
             yield JSONSignTestEnv(
                 bs=bs,
+                gpg_key_inspector=SubprocessGPGKeyInspector(),
                 signer_factory=signer_factory,
                 private_key_fingerprint="FBB89AA320A2806FE497C0492931A67C26F5ABDA",
                 public_key_ref=public_key_blob.get_ref(),
@@ -128,6 +93,7 @@ def test_sign_bad_input() -> None:
             sign_json_str(
                 unsigned_json_str="aa",
                 gpg_signer_factory=test_env.signer_factory,
+                gpg_key_inspector=SubprocessGPGKeyInspector(),
                 fetcher=test_env.bs,
             )
 
@@ -136,6 +102,7 @@ def test_sign_bad_input() -> None:
             sign_json_str(
                 unsigned_json_str=json.dumps([1, 2, 3]),
                 gpg_signer_factory=test_env.signer_factory,
+                gpg_key_inspector=test_env.gpg_key_inspector,
                 fetcher=test_env.bs,
             )
 
@@ -148,6 +115,7 @@ def test_sign_bad_input() -> None:
                     }
                 ),
                 gpg_signer_factory=test_env.signer_factory,
+                gpg_key_inspector=test_env.gpg_key_inspector,
                 fetcher=test_env.bs,
             )
 
@@ -160,6 +128,7 @@ def test_sign_bad_input() -> None:
                     },
                 ),
                 gpg_signer_factory=test_env.signer_factory,
+                gpg_key_inspector=test_env.gpg_key_inspector,
                 fetcher=test_env.bs,
             )
 
@@ -171,6 +140,7 @@ def test_sign_bad_input() -> None:
                 },
             ),
             gpg_signer_factory=test_env.signer_factory,
+            gpg_key_inspector=test_env.gpg_key_inspector,
             fetcher=test_env.bs,
         )
         signed_loaded = json.loads(signed)

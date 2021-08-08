@@ -16,7 +16,7 @@ import os
 import tempfile
 
 from .gpg import GPGSigner
-from .gpg import SubprocessGPGSignerFactory
+from .subprocess import SubprocessGPGSignerFactory
 
 
 def test_subprocess_gpg_signer() -> None:
