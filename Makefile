@@ -9,7 +9,7 @@ venv: requirements.txt requirements.test.txt
 
 .PHONY: test
 test: venv
-	venv/bin/pytest perkeepy -v
+	venv/bin/pytest perkeepy -vv
 
 .PHONY: fmt
 fmt: format
