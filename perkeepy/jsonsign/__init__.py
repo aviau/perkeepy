@@ -14,3 +14,4 @@
 
 from .jsonsign import sign_json
 from .jsonsign import sign_json_str
+from .jsonsign import verify_json_signature

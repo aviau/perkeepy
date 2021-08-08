@@ -31,3 +31,17 @@ class GPGKeyInspector(Protocol):
     def get_key_fingerprint(self, *, armored_key: str) -> str:
         """Returns the fingerprint of an armored GPG key"""
         ...
+
+
+class GPGSignatureVerifier(Protocol):
+    def verify_signature(self, *, data: bytes, signature: str) -> bool:
+        """Verify a GPG signature for the given data"""
+        ...
+
+
+class GPGSignatureVerifierFactory(Protocol):
+    def get_gpg_signature_verifier(
+        self, *, public_key: str
+    ) -> GPGSignatureVerifier:
+        """Returns a GPG signature verifier for a given public key"""
+        ...

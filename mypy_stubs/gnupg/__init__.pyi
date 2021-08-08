@@ -14,6 +14,8 @@
 
 from typing import Optional
 from typing import TypedDict
+from typing import Union
+from typing import Literal
 
 
 class GPGKey(TypedDict):
@@ -26,6 +28,9 @@ class ImportKeysResult:
     count: int
     fingerprints: list[str]
 
+class VerificationResult:
+    fingerprint: Optional[str]
+    valid: bool
 
 class GPG:
 
@@ -56,4 +61,24 @@ class GPG:
         detach: bool = False,
         binary: bool = False,
     ) -> Sign:
+        ...
+
+    def verify_data(
+        self,
+        sig_filename: str,
+        data: bytes,
+    ) -> VerificationResult:
+        ...
+
+
+    def trust_keys(
+        self,
+        fingerprints: list[str],
+        trustlevel: Union[
+            Literal['TRUST_NEVER'],
+            Literal['TRUST_MARGINAL'],
+            Literal['TRUST_FULLY'],
+            Literal['TRUST_ULTIMATE'],
+        ],
+    ) -> None:
         ...
