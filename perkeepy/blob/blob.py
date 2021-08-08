@@ -24,7 +24,7 @@ ReadAll = Callable[[], bytes]
 class Blob:
     def __init__(self, ref: Ref, readall: ReadAll) -> None:
         self._ref: Ref = ref
-        self.readall: ReadAll = readall
+        self._readall: ReadAll = readall
         self._bytes: Optional[bytes] = None
 
     def get_ref(self) -> Ref:
@@ -32,7 +32,7 @@ class Blob:
 
     def get_bytes(self) -> bytes:
         if self._bytes is None:
-            self._bytes = self.readall()
+            self._bytes = self._readall()
         return self._bytes
 
     def is_utf8(self) -> bool:
