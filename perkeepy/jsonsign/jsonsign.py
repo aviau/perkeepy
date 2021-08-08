@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from typing import Any
+from typing import Final
 from typing import Literal
 from typing import Optional
 from typing import TypedDict
@@ -24,8 +25,10 @@ from perkeepy.blob import Blob
 from perkeepy.blob import Fetcher
 from perkeepy.blob import Ref
 from perkeepy.gpg import GPGKeyInspector
+from perkeepy.gpg import GPGSignatureVerifierFactory
 from perkeepy.gpg import GPGSigner
 from perkeepy.gpg import GPGSignerFactory
+from perkeepy.gpg.gpg import GPGSignatureVerifier
 
 from .camlisig import CamliSig
 
@@ -35,13 +38,16 @@ class _SignableJSON(TypedDict):
     camliSigner: str
 
 
+_SIGNATURE_DELIMITER: Final[bytes] = b',"camliSig":"'
+
+
 def sign_json_str(
     *,
     unsigned_json_str: str,
     gpg_signer_factory: GPGSignerFactory,
     gpg_key_inspector: GPGKeyInspector,
     fetcher: Fetcher,
-) -> str:
+) -> bytes:
     """
     Signs JSON objects with the right GPG key based on the camliSigner.
     """
@@ -76,14 +82,14 @@ def sign_json(
     gpg_signer_factory: GPGSignerFactory,
     gpg_key_inspector: GPGKeyInspector,
     fetcher: Fetcher,
-) -> str:
+) -> bytes:
 
     # Prepare the JSON for signing
-    json_str: str = json.dumps(unsigned_json_object, indent=4)
-    json_str = json_str.rstrip()
-    if not json_str[-1] == "}":
+    json_bytes: bytes = json.dumps(unsigned_json_object, indent=4).encode()
+    json_bytes = json_bytes.rstrip()
+    if not json_bytes.endswith(b"}"):
         raise Exception("The json object should end with '}'")
-    json_str = json_str[:-1]
+    json_bytes = json_bytes.removesuffix(b"}")
 
     # Find the GPG key fingerprint corresponding to the camliSigner
     camli_signer: str = unsigned_json_object["camliSigner"]
@@ -101,13 +107,70 @@ def sign_json(
     gpg_signer: GPGSigner = gpg_signer_factory.get_gpg_signer(
         fingerprint=camli_signer_key_fingerprint
     )
-    armored_signature: str = gpg_signer.sign_detached_armored(
-        data=json_str.encode()
-    )
+    armored_signature: str = gpg_signer.sign_detached_armored(data=json_bytes)
     camli_signature: str = CamliSig.from_armored_gpg_signature(
         armored_signature
     )
 
-    signed_json: str = json_str + ',"camliSig":"' + camli_signature + '"}\n'
+    signed_json: bytes = (
+        json_bytes + _SIGNATURE_DELIMITER + camli_signature.encode() + b'"}\n'
+    )
 
     return signed_json
+
+
+def verify_json_signature(
+    *,
+    signed_json_object: bytes,
+    fetcher: Fetcher,
+    gpg_signature_verifier_factory: GPGSignatureVerifierFactory,
+) -> bool:
+    # Load the JSON object
+    json_obj: Any = json.loads(signed_json_object)
+    if not isinstance(json_obj, dict):
+        raise Exception(f"JSON must be an object, got {type(json_obj)}")
+
+    # Extract the signature
+    camli_signature: Any = json_obj.get("camliSig", None)
+    if not isinstance(camli_signature, str):
+        raise Exception(
+            f"camliSig must be a string, got {type(camli_signature)}"
+        )
+    camli_signature_armored: str = CamliSig.to_armored_gpg_signature(
+        camli_signature
+    )
+
+    # Find the camliSigner's public key
+    camli_signer: Any = json_obj.get("camliSigner", None)
+    if not isinstance(camli_signer, str):
+        raise Exception(
+            f"camliSigner must be a string, got {type(camli_signer)}"
+        )
+    camli_signer_ref: Ref = Ref.from_ref_str(camli_signer)
+    camli_signer_public_key_blob: Optional[Blob] = fetcher.fetch_blob(
+        camli_signer_ref
+    )
+    if not camli_signer_public_key_blob:
+        raise Exception(f"Could not fetch public key for signer {camli_signer}")
+    camli_signer_public_key: str = (
+        camli_signer_public_key_blob.get_bytes().decode()
+    )
+
+    # Isolate the signed content
+    signed_bytes_end_index = signed_json_object.rindex(_SIGNATURE_DELIMITER)
+    signed_bytes: bytes = signed_json_object[:signed_bytes_end_index]
+
+    # Create a GPG signature verifier
+    gpg_signature_veifier: GPGSignatureVerifier = (
+        gpg_signature_verifier_factory.get_gpg_signature_verifier(
+            public_key=camli_signer_public_key
+        )
+    )
+
+    # Verify the signature
+    result = gpg_signature_veifier.verify_signature(
+        data=signed_bytes,
+        signature=camli_signature_armored,
+    )
+
+    return result

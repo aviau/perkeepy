@@ -22,16 +22,17 @@ from dataclasses import dataclass
 
 import pytest
 
+from perkeepy import jsonsign
 from perkeepy.blob import Blob
 from perkeepy.blob import Ref
 from perkeepy.blobserver import Storage
 from perkeepy.blobserver.memory import MemoryBlobServer
+from perkeepy.gpg import GPGKeyInspector
+from perkeepy.gpg import GPGSignatureVerifierFactory
 from perkeepy.gpg import GPGSignerFactory
-from perkeepy.gpg.gpg import GPGKeyInspector
 from perkeepy.gpg.subprocess import SubprocessGPGKeyInspector
+from perkeepy.gpg.subprocess import SubprocessGPGSignatureVerifierFactory
 from perkeepy.gpg.subprocess import SubprocessGPGSignerFactory
-
-from .jsonsign import sign_json_str
 
 
 @dataclass
@@ -39,6 +40,7 @@ class JSONSignTestEnv:
     bs: Storage
     gpg_key_inspector: GPGKeyInspector
     signer_factory: GPGSignerFactory
+    verifier_factory: GPGSignatureVerifierFactory
     private_key_fingerprint: str
     public_key_ref: Ref
 
@@ -78,6 +80,7 @@ def get_test_env() -> Iterator[JSONSignTestEnv]:
                 bs=bs,
                 gpg_key_inspector=SubprocessGPGKeyInspector(),
                 signer_factory=signer_factory,
+                verifier_factory=SubprocessGPGSignatureVerifierFactory(),
                 private_key_fingerprint="FBB89AA320A2806FE497C0492931A67C26F5ABDA",
                 public_key_ref=public_key_blob.get_ref(),
             )
@@ -85,12 +88,12 @@ def get_test_env() -> Iterator[JSONSignTestEnv]:
             pass
 
 
-def test_sign_bad_input() -> None:
+def test_jsonsign_and_verify() -> None:
     with get_test_env() as test_env:
 
         # Bad JSON
         with pytest.raises(json.JSONDecodeError):
-            sign_json_str(
+            jsonsign.sign_json_str(
                 unsigned_json_str="aa",
                 gpg_signer_factory=test_env.signer_factory,
                 gpg_key_inspector=SubprocessGPGKeyInspector(),
@@ -99,7 +102,7 @@ def test_sign_bad_input() -> None:
 
         # Not a dict
         with pytest.raises(Exception, match="JSON string must be an object"):
-            sign_json_str(
+            jsonsign.sign_json_str(
                 unsigned_json_str=json.dumps([1, 2, 3]),
                 gpg_signer_factory=test_env.signer_factory,
                 gpg_key_inspector=test_env.gpg_key_inspector,
@@ -108,7 +111,7 @@ def test_sign_bad_input() -> None:
 
         # Unknown camliVersion
         with pytest.raises(Exception, match="Unknown camliVersion"):
-            sign_json_str(
+            jsonsign.sign_json_str(
                 unsigned_json_str=json.dumps(
                     {
                         "camliVersion": 2,
@@ -121,7 +124,7 @@ def test_sign_bad_input() -> None:
 
         # Expected camliSigner
         with pytest.raises(Exception, match="Expected camliSigner"):
-            sign_json_str(
+            jsonsign.sign_json_str(
                 unsigned_json_str=json.dumps(
                     {
                         "camliVersion": 1,
@@ -132,7 +135,8 @@ def test_sign_bad_input() -> None:
                 fetcher=test_env.bs,
             )
 
-        signed = sign_json_str(
+        # Sucessfully sign
+        signed = jsonsign.sign_json_str(
             unsigned_json_str=json.dumps(
                 {
                     "camliVersion": 1,
@@ -148,4 +152,15 @@ def test_sign_bad_input() -> None:
         assert (
             signed_loaded["camliSigner"]
             == "sha224-5ec87f8a261ae43b4bd2ef9358424a5f7e27735d3b8dc2dade222a67"
+        )
+        assert signed.splitlines()[-1].startswith(b',"camliSig":"')
+
+        # Verify the signature
+        assert (
+            jsonsign.verify_json_signature(
+                signed_json_object=signed,
+                fetcher=test_env.bs,
+                gpg_signature_verifier_factory=test_env.verifier_factory,
+            )
+            == True
         )

@@ -20,18 +20,24 @@ from contextlib import contextmanager
 from gnupg import GPG
 
 from .gpg import GPGKeyInspector
+from .gpg import GPGSignatureVerifier
+from .gpg import GPGSignatureVerifierFactory
 from .gpg import GPGSigner
 from .gpg import GPGSignerFactory
 
 
-class SubprocessGPGKeyInspector:
-    @contextmanager
-    def _temp_gpg_instance(self) -> Iterator[GPG]:
-        with tempfile.TemporaryDirectory() as tempdir:
-            yield GPG(gnupghome=tempdir)
+@contextmanager
+def _temp_gpg_instance() -> Iterator[GPG]:
+    with tempfile.TemporaryDirectory() as tempdir:
+        yield GPG(
+            gnupghome=tempdir,
+            use_agent=False,
+        )
 
+
+class SubprocessGPGKeyInspector:
     def get_key_fingerprint(self, armored_key: str) -> str:
-        with self._temp_gpg_instance() as gpg:
+        with _temp_gpg_instance() as gpg:
             imported_fingerprints: list[str] = gpg.import_keys(
                 key_data=armored_key
             ).fingerprints
@@ -86,7 +92,7 @@ class SubprocessGPGSignerFactory:
 
 
 class SubprocessGPGSigner:
-    def __init__(self, gpg: GPG, fingerprint: str):
+    def __init__(self, gpg: GPG, fingerprint: str) -> None:
         self._gpg: GPG = gpg
         self._fingerprint: str = fingerprint
 
@@ -103,3 +109,45 @@ class SubprocessGPGSigner:
         signer: "SubprocessGPGSigner",
     ) -> GPGSigner:
         return signer
+
+
+class SubprocessGPGSignatureVerifierFactory:
+    def get_gpg_signature_verifier(
+        self,
+        public_key: str,
+    ) -> GPGSignatureVerifier:
+        return SubprocessGPGSignatureVerifier(
+            public_key=public_key,
+        )
+
+    @staticmethod
+    def _assert_implements_gpg_signature_verifier_factory(
+        f: "SubprocessGPGSignatureVerifierFactory",
+    ) -> GPGSignatureVerifierFactory:
+        return f
+
+
+class SubprocessGPGSignatureVerifier:
+    def __init__(
+        self,
+        public_key: str,
+    ) -> None:
+        self._public_key: str = public_key
+
+    def verify_signature(self, *, data: bytes, signature: str) -> bool:
+        with _temp_gpg_instance() as gpg:
+            gpg.import_keys(self._public_key)
+            with tempfile.NamedTemporaryFile(mode="w") as signature_tempfile:
+                signature_tempfile.write(signature)
+                signature_tempfile.flush()
+                verified = gpg.verify_data(
+                    sig_filename=signature_tempfile.name,
+                    data=data,
+                )
+        return verified.valid
+
+    @staticmethod
+    def _assert_implements_gpg_signature_verifier(
+        v: "SubprocessGPGSignatureVerifier",
+    ) -> GPGSignatureVerifier:
+        return v
