@@ -21,14 +21,14 @@ from gnupg import GPG
 
 from .gpg import GPGKeyInspector
 from .gpg import GPGSignatureVerifier
-from .gpg import GPGSignatureVerifierFactory
 from .gpg import GPGSigner
-from .gpg import GPGSignerFactory
 
 
 @contextmanager
 def _temp_gpg_instance() -> Iterator[GPG]:
-    with tempfile.TemporaryDirectory() as tempdir:
+    with tempfile.TemporaryDirectory(
+        prefix="perkeepy-temp-gpg-instance"
+    ) as tempdir:
         yield GPG(
             gnupghome=tempdir,
             use_agent=False,
@@ -36,7 +36,7 @@ def _temp_gpg_instance() -> Iterator[GPG]:
 
 
 class SubprocessGPGKeyInspector:
-    def get_key_fingerprint(self, armored_key: str) -> str:
+    def get_key_fingerprint(self, *, armored_key: str) -> str:
         with _temp_gpg_instance() as gpg:
             imported_fingerprints: list[str] = gpg.import_keys(
                 key_data=armored_key
@@ -56,7 +56,7 @@ class SubprocessGPGKeyInspector:
         return inspector
 
 
-class SubprocessGPGSignerFactory:
+class SubprocessGPGSigner:
     def __init__(
         self,
         gpg_home_path: str,
@@ -68,38 +68,10 @@ class SubprocessGPGSignerFactory:
         )
         self._gpg.import_keys(key_data=private_key_data)
 
-    def _has_private_key(self, fingerprint: str) -> bool:
-        for key in self._gpg.list_keys(secret=True):
-            if key["fingerprint"] == fingerprint:
-                return True
-        return False
-
-    def get_gpg_signer(self, fingerprint: str) -> GPGSigner:
-        if not self._has_private_key(fingerprint):
-            raise Exception(
-                f"No private key matching fingerprint {fingerprint}"
-            )
-        return SubprocessGPGSigner(
-            gpg=self._gpg,
-            fingerprint=fingerprint,
-        )
-
-    @staticmethod
-    def _assert_implements_gpg_signer_factory(
-        signer_factory: "SubprocessGPGSignerFactory",
-    ) -> GPGSignerFactory:
-        return signer_factory
-
-
-class SubprocessGPGSigner:
-    def __init__(self, gpg: GPG, fingerprint: str) -> None:
-        self._gpg: GPG = gpg
-        self._fingerprint: str = fingerprint
-
-    def sign_detached_armored(self, data: bytes) -> str:
+    def sign_detached_armored(self, *, fingerprint: str, data: bytes) -> str:
         return self._gpg.sign(
             message=data,
-            keyid=self._fingerprint,
+            keyid=fingerprint,
             detach=True,
             binary=False,
         ).data.decode()
@@ -111,40 +83,30 @@ class SubprocessGPGSigner:
         return signer
 
 
-class SubprocessGPGSignatureVerifierFactory:
-    def get_gpg_signature_verifier(
-        self,
-        public_key: str,
-    ) -> GPGSignatureVerifier:
-        return SubprocessGPGSignatureVerifier(
-            public_key=public_key,
-        )
-
-    @staticmethod
-    def _assert_implements_gpg_signature_verifier_factory(
-        f: "SubprocessGPGSignatureVerifierFactory",
-    ) -> GPGSignatureVerifierFactory:
-        return f
-
-
 class SubprocessGPGSignatureVerifier:
-    def __init__(
+    def verify_signature(
         self,
-        public_key: str,
-    ) -> None:
-        self._public_key: str = public_key
-
-    def verify_signature(self, *, data: bytes, signature: str) -> bool:
+        *,
+        data: bytes,
+        armored_detached_signature: str,
+        armored_public_key: str,
+    ) -> bool:
         with _temp_gpg_instance() as gpg:
-            gpg.import_keys(self._public_key)
+            imported_fingerprints: list[str] = gpg.import_keys(
+                armored_public_key
+            ).fingerprints
             with tempfile.NamedTemporaryFile(mode="w") as signature_tempfile:
-                signature_tempfile.write(signature)
+                signature_tempfile.write(armored_detached_signature)
                 signature_tempfile.flush()
                 verified = gpg.verify_data(
                     sig_filename=signature_tempfile.name,
                     data=data,
                 )
-        return verified.valid
+        return bool(
+            verified.valid is True
+            and verified.fingerprint
+            and verified.fingerprint in imported_fingerprints
+        )
 
     @staticmethod
     def _assert_implements_gpg_signature_verifier(
