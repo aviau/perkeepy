@@ -18,10 +18,11 @@ import tempfile
 from contextlib import contextmanager
 
 from gnupg import GPG
+from gnupg import ImportResult
 
-from .gpg import GPGKeyInspector
-from .gpg import GPGSignatureVerifier
-from .gpg import GPGSigner
+from perkeepy.gpg import GPGKeyInspector
+from perkeepy.gpg import GPGSignatureVerifier
+from perkeepy.gpg import GPGSigner
 
 
 @contextmanager
@@ -92,9 +93,12 @@ class SubprocessGPGSignatureVerifier:
         armored_public_key: str,
     ) -> bool:
         with _temp_gpg_instance() as gpg:
-            imported_fingerprints: list[str] = gpg.import_keys(
-                armored_public_key
-            ).fingerprints
+            import_result: "ImportResult" = gpg.import_keys(armored_public_key)
+            imported_fingerprints: list[str] = import_result.fingerprints
+            if not imported_fingerprints:
+                raise Exception(
+                    f"Could not import the provided key: {str(import_result.stderr)}",
+                )
             with tempfile.NamedTemporaryFile(mode="w") as signature_tempfile:
                 signature_tempfile.write(armored_detached_signature)
                 signature_tempfile.flush()
