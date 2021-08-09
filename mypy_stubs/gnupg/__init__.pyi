@@ -24,9 +24,10 @@ class GPGKey(TypedDict):
 class Sign:
     data: bytes
 
-class ImportKeysResult:
+class ImportResult:
     count: int
     fingerprints: list[str]
+    stderr: bytes
 
 class VerificationResult:
     fingerprint: Optional[str]
@@ -51,7 +52,7 @@ class GPG:
     def import_keys(
         self,
         key_data: str,
-    ) -> ImportKeysResult:
+    ) -> ImportResult:
         ...
 
     def sign(
