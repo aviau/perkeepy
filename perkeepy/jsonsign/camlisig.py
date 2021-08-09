@@ -49,5 +49,5 @@ class CamliSig:
         armored_gpg_signature += "\n".join(chunks)
         armored_gpg_signature += "\n"
 
-        armored_gpg_signature += "-----END PGP SIGNATURE----\n"
+        armored_gpg_signature += "-----END PGP SIGNATURE-----\n"
         return armored_gpg_signature

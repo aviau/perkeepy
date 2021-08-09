@@ -39,7 +39,7 @@ BStgOSq1WkgCozNBxPA7V5mcUx2rUOsWHYSmEY8foPdeDYcrw2pvxPN8kXk6zBrZ
 ilrtaY+Yx5zPLkq8trhHPgCdf4chL+Y2kmxXMKYjU+bkmJaNycUURdncZakTEv9Y
 fbBp04kbHIaN6DttEoXuU96nTyuCFhIftmV+GPbvGpl3e2yhmae5hUUt1g0o8FE=
 =aSCK
------END PGP SIGNATURE----
+-----END PGP SIGNATURE-----
 """
 
     assert (
