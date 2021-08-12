@@ -12,4 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .index import SortedKVIndex
+from typing import Callable
+
+from perkeepy.index import Indexer
+
+
+def run_index_test(indexer_factory: Callable[[], Indexer]) -> None:
+    """Suite of tests to validate an Indexer implementation"""
+
+    # Create and index a permanode
+    # TODO: Create a permanode using a schema builder
+
+    assert indexer_factory

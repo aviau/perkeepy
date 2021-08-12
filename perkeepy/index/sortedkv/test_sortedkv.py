@@ -12,4 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .index import SortedKVIndex
+from perkeepy.index import Indexer
+from perkeepy.index import test_index
+from perkeepy.index.sortedkv import SortedKVIndex
+from perkeepy.sortedkv.ordered_dict import OrderedDictSortedKV
+
+
+def test_sortedkv() -> None:
+    def indexer_factory() -> Indexer:
+        sorted_kv_indexer: Indexer = SortedKVIndex(
+            sorted_kv=OrderedDictSortedKV(),
+        )
+        return sorted_kv_indexer
+
+    test_index.run_index_test(indexer_factory=indexer_factory)
